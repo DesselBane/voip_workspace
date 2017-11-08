@@ -8,7 +8,19 @@
 
 #ifndef VOIP_SENDER_H
 #define VOIP_SENDER_H
+#include <vector>
+#include <socket.h>
 
-class Sender {};
+class Sender
+{
+public:
+	Sender();
+	~Sender();
+	void send(const std::vector<uint8_t>& data);
+
+private:
+	util::UdpSocket* socket_;
+	util::Ipv4SocketAddress* sendToAddress_;
+};
 
 #endif /* VOIP_SENDER_H */

@@ -11,6 +11,7 @@
 
 #include <thread>
 #include <iostream>
+#include <socket.h>
 
 class Receiver {
 public:
@@ -25,6 +26,8 @@ private:
 
   std::thread self_;
   bool        running_;
+  util::UdpSocket* socket_;
+  util::Ipv4SocketAddress* receiveAddress_;
 };
 
 #endif /* VOIP_RECEIVER_H */

@@ -36,8 +36,39 @@
 /******************************************************************************/
 
 #include "voip_comm.h"
+#include "receiver.h"
+#include "sender.h"
+
+using namespace std;
 
 int main(int argc, char *argv[]) {
-  VoIPComm communicator;
+  
+	Receiver myReceiver;
+
+	myReceiver.start();
+
+	Sender mySender;
+
+	while (true)
+	{
+		cout << endl << "Type your message:" << endl;
+
+		string message;
+		getline(cin, message);
+
+		if (message == "exit")
+			break;
+
+		mySender.send(vector<uint8_t>(message.begin(), message.end()));
+	}
+
+
+	myReceiver.stop();
+	
+	return 0;
+	
+	
+	
+	VoIPComm communicator;
   return communicator.exec(argc, argv);
 }

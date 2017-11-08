@@ -165,7 +165,7 @@ SoundCard::~SoundCard() {
   delete impl_;
 }
 
-bool SoundCard::init(int inDev, int outDev, unsigned int inCh,
+bool SoundCard::init(int inDev, int outDev , unsigned int inCh,
                      unsigned int outCh, unsigned int sr,
                      unsigned int fs, util::AudioBuffer::SampleFormat sampleFormat)
 {

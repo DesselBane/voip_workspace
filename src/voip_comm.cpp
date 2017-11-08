@@ -33,7 +33,7 @@
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
  * IN THE SOFTWARE.
  */
-/******************************************************************************/
+ /******************************************************************************/
 
 #include <iostream>
 
@@ -44,8 +44,43 @@
 
 #include "tclap/CmdLine.h"
 
+using namespace std;
+
 int VoIPComm::process(util::AudioBuffer& output, util::AudioBuffer const& input) {
-  return 0; // This is currently a no-op
+	float* buff = reinterpret_cast<float*>(output.data());
+
+	for (int i = 0; i < input.nSamples(); i++)
+	{
+		buff[output.channels()*i] = ((float*)input.data())[i];
+
+		switch (output.channels())
+		{
+		case 8:
+			buff[output.channels()*i + 7] = 0;
+
+		case 7:
+			buff[output.channels()*i + 6] = 0;
+
+		case 6:
+			buff[output.channels()*i + 5] = 0;
+
+		case 5:
+			buff[output.channels()*i + 4] = 0;
+
+		case 4:
+			buff[output.channels()*i + 3] = 0;
+
+		case 3:
+			buff[output.channels()*i + 2] = 0;
+
+		case 2:
+			buff[output.channels()*i + 1] = ((float*)input.data())[i];
+			break;
+		}
+		
+	}
+
+	return 0;
 }
 
 VoIPComm::VoIPComm() {}
@@ -53,81 +88,102 @@ VoIPComm::~VoIPComm() {}
 
 int VoIPComm::exec(int argc, char *argv[]) {
 
-  if (!init(argc, argv)) {
-    std::cerr << "Error initializing!" << std::endl;
-    return -1;
-  }
-  std::cout << std::endl;
-  std::cout << "** This is the Application entry point after initialization." << std::endl;
-  std::cout << "** Perform required setup, start the receiver, the sound card and the sender and you should be good to go." << std::endl;
+	cout << "Starting SoundCard" << endl;
+	util::SoundCard mySoundCard(this);
+	mySoundCard.init(-1,-1,1,8,44100,512,util::AudioBuffer::FLOAT32);
+	mySoundCard.start();
 
-  // Init soundcard and stuff - you can also do this in init.
-  // Wire up all required connections.
-  // Then somewhere, start the receiver (this can also become a member variable - its entirely up to you!)
-  Receiver r;
-  r.start();
+	// Just wait for enter
+	char input;
+	std::cin.get(input);
 
-  // Start the sound card and process I/O
-  std::cout << " ** Now you should start the soundcard and begin to process I/O." << std::endl;
-  std::cout << " ** Note: because the receiver runs in parallel, you may read this message before the message printed" << std::endl;
-  std::cout << " ** by the receiver or they may even be interleaved!" << std::endl;
-  std::cout << std::endl;
-  std::cout << std::endl << " ** Actually, this implementation is just a dummy. Press enter to exit..." << std::endl;
+	mySoundCard.stop();
 
-  // Just wait for enter
-  char input;
-  std::cin.get(input);
+	return 0;
 
-  r.stop();
 
-  return 0;
+
+
+	if (!init(argc, argv)) {
+		std::cerr << "Error initializing!" << std::endl;
+		return -1;
+	}
+	std::cout << std::endl;
+	std::cout << "** This is the Application entry point after initialization." << std::endl;
+	std::cout << "** Perform required setup, start the receiver, the sound card and the sender and you should be good to go." << std::endl;
+
+	// Init soundcard and stuff - you can also do this in init.
+	// Wire up all required connections.
+	// Then somewhere, start the receiver (this can also become a member variable - its entirely up to you!)
+	//Receiver r;
+	//r.start();
+
+	// Start the sound card and process I/O
+	std::cout << " ** Now you should start the soundcard and begin to process I/O." << std::endl;
+	std::cout << " ** Note: because the receiver runs in parallel, you may read this message before the message printed" << std::endl;
+	std::cout << " ** by the receiver or they may even be interleaved!" << std::endl;
+	std::cout << std::endl;
+	std::cout << std::endl << " ** Actually, this implementation is just a dummy. Press enter to exit..." << std::endl;
+
+	
+
+	// Just wait for enter
+	//char input;
+	std::cin.get(input);
+
+	
+
+	//r.stop();
+
+	return 0;
 }
 
 bool VoIPComm::init(int argc, char *argv[]) {
 
-  /* Set up command line arguments */
-  try {
+	/* Set up command line arguments */
+	try {
 
-    TCLAP::CmdLine cmd("VoIP Real-Time Communication Project", ' ', "0.1");
+		TCLAP::CmdLine cmd("VoIP Real-Time Communication Project", ' ', "0.1");
 
-    // This is the only command line argument currently used
-    TCLAP::SwitchArg listDevices("l", "list-devices", "List audio devices", cmd, false);
+		// This is the only command line argument currently used
+		TCLAP::SwitchArg listDevices("l", "list-devices", "List audio devices", cmd, false);
 
-    // These here show you what you might need
-    TCLAP::ValueArg<int>          inDev( "i", "input-device",  "Select input device",                   false, -1,    "int", cmd);
-    TCLAP::ValueArg<int>          outDev("o", "output-device", "Select output device",                  false, -1,    "int", cmd);
-    TCLAP::ValueArg<unsigned int> inCh(  "",  "inCh",          "Number of input channels (default: 1)", false, 1,     "unsigned int", cmd);
-    TCLAP::ValueArg<unsigned int> outCh( "",  "outCh",         "Number of output channels (default 1)", false, 1,     "unsigned int", cmd);
-    TCLAP::ValueArg<unsigned int> fs(    "f", "Framesize",     "Framesize (default: 512)",              false, 512,   "unsigned int", cmd);
-    TCLAP::ValueArg<unsigned int> s(     "s", "samplerate",    "Samplerate (default: 44100)",           false, 44100, "unsigned int", cmd);
-    TCLAP::ValueArg<unsigned int> rPort( "",  "rPort",         "Remote Port (default: 1976)",           false, 1976,  "unsigned int", cmd);
-    TCLAP::ValueArg<unsigned int> lPort( "",  "lPort",         "Local Port (default: 1976)",            false, 1976,  "unsigned int", cmd);
+		// These here show you what you might need
+		TCLAP::ValueArg<int>          inDev("i", "input-device", "Select input device", false, -1, "int", cmd);
+		TCLAP::ValueArg<int>          outDev("o", "output-device", "Select output device", false, -1, "int", cmd);
+		TCLAP::ValueArg<unsigned int> inCh("", "inCh", "Number of input channels (default: 1)", false, 1, "unsigned int", cmd);
+		TCLAP::ValueArg<unsigned int> outCh("", "outCh", "Number of output channels (default 1)", false, 1, "unsigned int", cmd);
+		TCLAP::ValueArg<unsigned int> fs("f", "Framesize", "Framesize (default: 512)", false, 512, "unsigned int", cmd);
+		TCLAP::ValueArg<unsigned int> s("s", "samplerate", "Samplerate (default: 44100)", false, 44100, "unsigned int", cmd);
+		TCLAP::ValueArg<unsigned int> rPort("", "rPort", "Remote Port (default: 1976)", false, 1976, "unsigned int", cmd);
+		TCLAP::ValueArg<unsigned int> lPort("", "lPort", "Local Port (default: 1976)", false, 1976, "unsigned int", cmd);
 
-    TCLAP::UnlabeledValueArg<std::string> destIp("destIp", "Destination IP address", false, "", "std::string", cmd);
+		TCLAP::UnlabeledValueArg<std::string> destIp("destIp", "Destination IP address", false, "", "std::string", cmd);
 
-    cmd.parse(argc, argv);
+		cmd.parse(argc, argv);
 
-    /* Add argument processing here */
-    if (listDevices.getValue()) {
-      this->listDevices();
-      exit(0);
-    }
+		/* Add argument processing here */
+		if (listDevices.getValue()) {
+			this->listDevices();
+			exit(0);
+		}
 
-    // if -l is not specified, the IP is mandatory
-    // in order to establish an endpoint connection
-    if (destIp.getValue() == "") {
-      TCLAP::StdOutput().usage(cmd);
-      exit(-1);
-    }
+		// if -l is not specified, the IP is mandatory
+		// in order to establish an endpoint connection
+		if (destIp.getValue() == "") {
+			TCLAP::StdOutput().usage(cmd);
+			exit(-1);
+		}
 
-  } catch (TCLAP::ArgException& argEx) {
-    std::cerr << "Error parsing command line arguments: " << argEx.error() << " for argument " << argEx.argId() << std::endl;
-    return false;
-  }
+	}
+	catch (TCLAP::ArgException& argEx) {
+		std::cerr << "Error parsing command line arguments: " << argEx.error() << " for argument " << argEx.argId() << std::endl;
+		return false;
+	}
 
-  return true;
+	return true;
 }
 
 void VoIPComm::listDevices() {
-  util::SoundCard::listDevices();
+	util::SoundCard::listDevices();
 }
