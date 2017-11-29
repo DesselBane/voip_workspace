@@ -17,7 +17,7 @@ void PacketStrcutre::CreateByteBuffer ( int const sizeByte )
 }
 
 
-void PacketStrcutre::WriteDataToBuffer ( int const data, int const startBit, int const endBit )
+void PacketStrcutre::WriteDataToBuffer ( const uint32_t data, int const startBit, int const endBit )
 {
 	ValidateDataLength(data, endBit - startBit + 1);
 	const int last8Bitmask = 1 << 8 - 1;
