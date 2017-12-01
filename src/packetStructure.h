@@ -1,20 +1,21 @@
 #pragma once
+#include <vector>
 
 class PacketStrcutre
 {
-	private:
 		char* byteBuffer_ = nullptr;
 		int sizeByte_ = -1;
 
 		void ValidateDataLength(int const data, int const length);
 
-	protected:
+protected:
+
 		void CreateByteBuffer(int const size);
-		void WriteDataToBuffer(int const data, int const beginn, int const end);
+		void WriteDataToBuffer( const uint32_t data, int const beginn, int const end );
 
 	public:
-		~PacketStrcutre();
-		virtual char* Build() = 0;
+	virtual ~PacketStrcutre();
+		virtual char* Build ( ) = 0;
 		char* getBuffer();
 		int getSizeByte();
 };
