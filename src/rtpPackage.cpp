@@ -16,16 +16,11 @@ char* RtpPackage::Build ( )
 	int paddingSizeInBit = paddingRemainder;
 
 	int sizeByte = baseByteSize + contributerByteSize;
+	sizeByte += payload_->size();
 
 	if(paddingRemainder > 0)
 	{
 		padding = 1;
-		sizeByte += payload_->size();
-		if (paddingRemainder < 8)
-		{
-			sizeByte += 4;
-			paddingSizeInBit += 32;
-		}
 	}
 
 	if (sizeByte * 8 % 32 != 0)
@@ -58,7 +53,7 @@ char* RtpPackage::Build ( )
 
 	if(padding > 0)
 	{
-		WriteDataToBuffer(paddingSizeInBit, sizeByte * 8 - 8, sizeByte * 8 - 1);
+		WriteDataToBuffer(paddingSizeInBit / 8, sizeByte * 8 - 8, sizeByte * 8 - 1);
 	}
 
 }
