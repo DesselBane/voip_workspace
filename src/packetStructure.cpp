@@ -3,17 +3,21 @@
 
 void PacketStrcutre::ValidateDataLength ( int const data, int const length )
 {
-	if (data - ((1 << length) - 1) > 0)
+	long longData = data;
+	if (longData >> (length - 1) > 1)
 		throw "Data exceeds length";
 }
 
 void PacketStrcutre::CreateByteBuffer ( int const sizeByte )
 {
-	if (byteBuffer_ != nullptr)
+	if (byteBuffer_ == nullptr)
 	{
 		byteBuffer_ = new char[sizeByte];
 		sizeByte_ = sizeByte;
 	}
+
+	for (int i = 0; i < sizeByte_; i++)
+		byteBuffer_[i] = 0;
 }
 
 
@@ -31,7 +35,7 @@ void PacketStrcutre::WriteDataToBuffer ( const uint32_t data, int const startBit
 
 	char oldData = bitMask & byteBuffer_[position];
 	
-	const int last8Bitmask = 1 << 8 - 1;
+	const int last8Bitmask = (1 << 8) - 1;
 
 	byteBuffer_[position] = data << tail & last8Bitmask | oldData; //TODO verify this
 
@@ -104,6 +108,11 @@ uint32_t PacketStrcutre::ReadDataFromBuffer ( int const startBit, int const endB
 	headData |= bufferData;
 
 	return headData;
+}
+
+char* PacketStrcutre::GetByteBuffer()
+{
+	return byteBuffer_;
 }
 
 

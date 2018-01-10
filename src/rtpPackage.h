@@ -12,7 +12,7 @@ class RtpPackage : public PacketStrcutre
 	uint16_t sequenceNumber_ = 0;
 	uint32_t timestamp_ = 0;
 	uint32_t synchronizationSourceIdentifier_ = 0;
-	std::vector<uint32_t>* contributingSourceIdentifiers = new std::vector<uint32_t>(15);
+	std::vector<uint32_t>* contributingSourceIdentifiers = new std::vector<uint32_t>();
 	std::vector<char>* payload_ = nullptr;
 	int payloadType_ = 0;
 

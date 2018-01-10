@@ -11,9 +11,9 @@ char* RtpPackage::Build ( )
 {
 	const int baseByteSize = 12;
 	const int contributerByteSize = contributingSourceIdentifiers->size() * 4;
-	const int paddingRemainder = 32 - payload_->size() * 8 % 32;
+	const int paddingRemainder = (32 - payload_->size() * 8 % 32) % 32;
 	int padding = 0;
-	int paddingSizeInBit = paddingRemainder;
+	int paddingSizeInByte = paddingRemainder / 8;
 
 	int sizeByte = baseByteSize + contributerByteSize;
 	sizeByte += payload_->size();
@@ -21,6 +21,7 @@ char* RtpPackage::Build ( )
 	if(paddingRemainder > 0)
 	{
 		padding = 1;
+		sizeByte += paddingSizeInByte;
 	}
 
 	if (sizeByte * 8 % 32 != 0)
@@ -53,8 +54,10 @@ char* RtpPackage::Build ( )
 
 	if(padding > 0)
 	{
-		WriteDataToBuffer(paddingSizeInBit / 8, sizeByte * 8 - 8, sizeByte * 8 - 1);
+		WriteDataToBuffer(paddingSizeInByte , sizeByte * 8 - 8, sizeByte * 8 - 1);
 	}
+
+	return GetByteBuffer();
 
 }
 

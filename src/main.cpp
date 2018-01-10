@@ -38,11 +38,29 @@
 #include "voip_comm.h"
 #include "receiver.h"
 #include "sender.h"
+#include "rtpPackage.h"
 
 using namespace std;
 
 int main(int argc, char *argv[]) {
   
+	auto pkg = RtpPackage();
+	pkg.set_use_extension_headers(true)
+		->set_payload_type(5)
+		->set_sequence_number(10)
+		->set_timestamp(50)
+		->set_synchronization_source_identifier(100)
+		->set_payload(new vector<char>{ 'T','e' });
+
+	auto byteArray = pkg.Build();
+
+	for(int i = 0; i < pkg.getSizeByte(); i++)
+	{
+		int charCode = byteArray[i];
+	}
+
+	return 0;
+
 	Receiver myReceiver;
 
 	myReceiver.start();

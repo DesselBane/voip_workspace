@@ -13,6 +13,7 @@ protected:
 		void CreateByteBuffer(int const size);
 		void WriteDataToBuffer( const uint32_t data, int const beginn, int const end );
 		uint32_t ReadDataFromBuffer( int const startBit, int const endBit );
+		char* GetByteBuffer();
 
 	public:
 	virtual ~PacketStrcutre();
