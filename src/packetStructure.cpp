@@ -64,15 +64,46 @@ uint32_t PacketStrcutre::ReadDataFromBuffer ( int const startBit, int const endB
 	if (totalLength > 32)
 		throw "Cannot read more then a unit32_t";
 
-	int tail = 8 - endBit % 8 - 1;
-	int position = (endBit + tail) / 8;
-	int head = startBit % 8;
-	int length = 8 - head < totalLength ? 8 - head : totalLength;
+	int tail = 8 - startBit % 8 + 1;
+	int position = (startBit + tail - 2) / 8;
+	int length = tail;
 
-	int bitMask = (1 << length) - 1 << tail;
-	int headData = (byteBuffer_[position] & bitMask) >> tail;
+	if (totalLength < length)
+		length = totalLength;
+
+	int bitMask = (1 << length) - 1;
+
+	if (totalLength < tail)
+		bitMask <<= tail - totalLength;
+
+	int headData = byteBuffer_[position] & bitMask;
+
+	if(totalLength < tail)
+	{
+		headData >>= tail - totalLength;
+	}
 
 	int remainingBits = totalLength - length;
+	position += 1;
+
+	while (remainingBits > 7)
+	{
+		headData <<= 8;
+		headData = headData | byteBuffer_[position];
+		remainingBits -= 8;
+		position += 1;
+	}
+
+	if (remainingBits < 1)
+		return  headData;
+
+	int remainder = 8 - remainingBits;
+	headData <<= remainingBits;
+	int bufferData = byteBuffer_[position];
+	bufferData >>= remainder;
+	headData |= bufferData;
+
+	return headData;
 }
 
 
