@@ -12,7 +12,7 @@ void PacketStrcutre::CreateByteBuffer ( int const sizeByte )
 {
 	if (byteBuffer_ == nullptr)
 	{
-		byteBuffer_ = new char[sizeByte];
+		byteBuffer_ = new uint8_t[sizeByte];
 		sizeByte_ = sizeByte;
 	}
 
@@ -110,20 +110,11 @@ uint32_t PacketStrcutre::ReadDataFromBuffer ( int const startBit, int const endB
 	return headData;
 }
 
-char* PacketStrcutre::GetByteBuffer()
-{
-	return byteBuffer_;
-}
-
 
 PacketStrcutre::~PacketStrcutre ( )
 {
 	delete[] byteBuffer_;
 	byteBuffer_ = nullptr;
-}
-char* PacketStrcutre::getBuffer ( )
-{
-	return byteBuffer_;
 }
 int PacketStrcutre::getSizeByte ( )
 {

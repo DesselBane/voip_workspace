@@ -50,7 +50,7 @@ int main(int argc, char *argv[]) {
 		->set_sequence_number(10)
 		->set_timestamp(50)
 		->set_synchronization_source_identifier(100)
-		->set_payload(new vector<char>{ 'T','e' });
+		->set_payload(new vector<uint8_t>{ 'T','e' });
 
 	auto byteArray = pkg.Build();
 
@@ -58,6 +58,11 @@ int main(int argc, char *argv[]) {
 	{
 		int charCode = byteArray[i];
 	}
+
+	auto byteVector = new vector<uint8_t>(byteArray, byteArray + pkg.getSizeByte());
+
+
+	auto parsedPkg = RtpPackage::ParsePackage(byteVector);
 
 	return 0;
 
