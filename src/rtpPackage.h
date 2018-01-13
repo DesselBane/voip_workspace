@@ -21,7 +21,7 @@ class RtpPackage : public PacketStrcutre
 		RtpPackage();
 		~RtpPackage();
 
-	uint8_t* Build() override;
+	std::vector<uint8_t>* Build() override;
 
 	std::vector<uint32_t> get_contributing_source_identifiers ( ) const;
 	RtpPackage* set_contributing_source_identifiers ( uint32_t ident );

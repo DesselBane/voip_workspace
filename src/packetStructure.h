@@ -4,7 +4,7 @@
 class PacketStrcutre
 {
 protected:
-	uint8_t* byteBuffer_ = nullptr;
+	std::vector<uint8_t>* byteBuffer_ = nullptr;
 	int sizeByte_ = -1;
 
 	void ValidateDataLength(int const data, int const length);
@@ -16,7 +16,7 @@ protected:
 
 public:
 	virtual ~PacketStrcutre();
-	virtual uint8_t* Build() = 0;
+	virtual std::vector<uint8_t>* Build() = 0;
 	char* getBuffer();
 	int getSizeByte();
 };

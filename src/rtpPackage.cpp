@@ -9,7 +9,7 @@ RtpPackage::~RtpPackage ( )
 	contributingSourceIdentifiers = nullptr;
 }
 
-uint8_t* RtpPackage::Build()
+std::vector<uint8_t>* RtpPackage::Build()
 {
 	
 	const int contributerByteSize = contributingSourceIdentifiers->size() * 4;
@@ -123,7 +123,7 @@ RtpPackage* RtpPackage::set_synchronization_source_identifier ( uint32_t synchro
 std::vector<uint8_t>* RtpPackage::get_payload() const { return payload_; }
 RtpPackage* RtpPackage::set_payload (std::vector<uint8_t>* payload)
 {
-	payload_ = payload;
+	payload_ = payload; // TODO copy
 	return this;
 }
 
@@ -137,20 +137,20 @@ RtpPackage* RtpPackage::set_payload_type ( int payload_type )
 RtpPackage* RtpPackage::ParsePackage(vector<uint8_t>* byteArray)
 {
 	auto pkg = new RtpPackage();
-	pkg->byteBuffer_ = byteArray->data();
+	pkg->byteBuffer_ = new std::vector<uint8_t>(byteArray->begin(),byteArray->end()); //Todo copy
 
 	int sizeInBytes = byteArray->size();
 	int paddingInBytes = pkg->ReadDataFromBuffer(2, 2) == 0 ? 0 : pkg->ReadDataFromBuffer(sizeInBytes * 8 - 8, sizeInBytes * 8 - 1);
 	int contributingSourceIdentifiersCount = pkg->ReadDataFromBuffer(4, 7);
 	int payloadSizeInBytes = sizeInBytes - base_byte_size - contributingSourceIdentifiersCount * 4 - paddingInBytes;
 
-	pkg->set_version(pkg->ReadDataFromBuffer(0, 1))
-		->set_use_extension_headers(pkg->ReadDataFromBuffer(3, 3))
-		->set_marker_bit(pkg->ReadDataFromBuffer(8, 8))
-		->set_payload_type(pkg->ReadDataFromBuffer(9, 15))
-		->set_sequence_number(pkg->ReadDataFromBuffer(16, 31))
-		->set_timestamp(pkg->ReadDataFromBuffer(32, 63))
-		->set_synchronization_source_identifier(pkg->ReadDataFromBuffer(64, 95));
+	pkg->set_version(pkg->ReadDataFromBuffer(0, 1));
+	pkg->set_use_extension_headers(pkg->ReadDataFromBuffer(3, 3));
+		pkg->set_marker_bit(pkg->ReadDataFromBuffer(8, 8));
+		pkg->set_payload_type(pkg->ReadDataFromBuffer(9, 15));
+		pkg->set_sequence_number(pkg->ReadDataFromBuffer(16, 31));
+		pkg->set_timestamp(pkg->ReadDataFromBuffer(32, 63));
+		pkg->set_synchronization_source_identifier(pkg->ReadDataFromBuffer(64, 95));
 
 	int position = 96;
 

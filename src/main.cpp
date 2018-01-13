@@ -50,19 +50,20 @@ int main(int argc, char *argv[]) {
 		->set_sequence_number(10)
 		->set_timestamp(50)
 		->set_synchronization_source_identifier(100)
-		->set_payload(new vector<uint8_t>{ 'T','e' });
+		->set_contributing_source_identifiers(128)
+		->set_contributing_source_identifiers(32768)
+		->set_contributing_source_identifiers(8388608)
+		->set_contributing_source_identifiers(2147483648)
+		->set_payload(new vector<uint8_t>{ 'T','e','s','t' });
 
 	auto byteArray = pkg.Build();
 
 	for(int i = 0; i < pkg.getSizeByte(); i++)
 	{
-		int charCode = byteArray[i];
+		int charCode = byteArray->data()[i];
 	}
 
-	auto byteVector = new vector<uint8_t>(byteArray, byteArray + pkg.getSizeByte());
-
-
-	auto parsedPkg = RtpPackage::ParsePackage(byteVector);
+	auto parsedPkg = RtpPackage::ParsePackage(byteArray);
 
 	return 0;
 

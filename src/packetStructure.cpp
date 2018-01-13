@@ -12,12 +12,12 @@ void PacketStrcutre::CreateByteBuffer ( int const sizeByte )
 {
 	if (byteBuffer_ == nullptr)
 	{
-		byteBuffer_ = new uint8_t[sizeByte];
+		byteBuffer_ = new std::vector<uint8_t>(sizeByte);
 		sizeByte_ = sizeByte;
 	}
 
 	for (int i = 0; i < sizeByte_; i++)
-		byteBuffer_[i] = 0;
+		byteBuffer_->data()[i] = 0;
 }
 
 
@@ -33,11 +33,11 @@ void PacketStrcutre::WriteDataToBuffer ( const uint32_t data, int const startBit
 	int tailBitMask = (1 << tail) - 1;
 	int bitMask = headBitMask | tailBitMask;
 
-	char oldData = bitMask & byteBuffer_[position];
+	char oldData = bitMask & byteBuffer_->data()[position];
 	
 	const int last8Bitmask = (1 << 8) - 1;
 
-	byteBuffer_[position] = data << tail & last8Bitmask | oldData; //TODO verify this
+	byteBuffer_->data()[position] = data << tail & last8Bitmask | oldData; //TODO verify this
 
 	int forntHead = 8 - tail;
 	int remainingBits = endBit - startBit - forntHead;
@@ -47,7 +47,7 @@ void PacketStrcutre::WriteDataToBuffer ( const uint32_t data, int const startBit
 
 	while ( remainingBits >= 8 && position >= 0)
 	{
-		byteBuffer_[position] = remainingData & last8Bitmask;
+		byteBuffer_->data()[position] = remainingData & last8Bitmask;
 
 		position--;
 		remainingData >>= 8;
@@ -57,8 +57,8 @@ void PacketStrcutre::WriteDataToBuffer ( const uint32_t data, int const startBit
 	if(remainingBits < 1)
 		return;
 
-	oldData = byteBuffer_[position] & (1 << 8 - remainingBits) - 1 << remainingBits;
-	byteBuffer_[position] = oldData | remainingData & last8Bitmask;
+	oldData = byteBuffer_->data()[position] & (1 << 8 - remainingBits) - 1 << remainingBits;
+	byteBuffer_->data()[position] = oldData | remainingData & last8Bitmask;
 }
 
 uint32_t PacketStrcutre::ReadDataFromBuffer ( int const startBit, int const endBit )
@@ -68,7 +68,7 @@ uint32_t PacketStrcutre::ReadDataFromBuffer ( int const startBit, int const endB
 	if (totalLength > 32)
 		throw "Cannot read more then a unit32_t";
 
-	int tail = 8 - startBit % 8 + 1;
+	int tail = 8 - startBit % 8;
 	int position = (startBit + tail - 2) / 8;
 	int length = tail;
 
@@ -80,7 +80,7 @@ uint32_t PacketStrcutre::ReadDataFromBuffer ( int const startBit, int const endB
 	if (totalLength < tail)
 		bitMask <<= tail - totalLength;
 
-	int headData = byteBuffer_[position] & bitMask;
+	int headData = byteBuffer_->data()[position] & bitMask;
 
 	if(totalLength < tail)
 	{
@@ -93,7 +93,7 @@ uint32_t PacketStrcutre::ReadDataFromBuffer ( int const startBit, int const endB
 	while (remainingBits > 7)
 	{
 		headData <<= 8;
-		headData = headData | byteBuffer_[position];
+		headData = headData | byteBuffer_->data()[position];
 		remainingBits -= 8;
 		position += 1;
 	}
@@ -103,7 +103,7 @@ uint32_t PacketStrcutre::ReadDataFromBuffer ( int const startBit, int const endB
 
 	int remainder = 8 - remainingBits;
 	headData <<= remainingBits;
-	int bufferData = byteBuffer_[position];
+	int bufferData = byteBuffer_->data()[position];
 	bufferData >>= remainder;
 	headData |= bufferData;
 
@@ -113,7 +113,7 @@ uint32_t PacketStrcutre::ReadDataFromBuffer ( int const startBit, int const endB
 
 PacketStrcutre::~PacketStrcutre ( )
 {
-	delete[] byteBuffer_;
+	delete byteBuffer_;
 	byteBuffer_ = nullptr;
 }
 int PacketStrcutre::getSizeByte ( )
