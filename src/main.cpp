@@ -44,29 +44,6 @@ using namespace std;
 
 int main(int argc, char *argv[]) {
   
-	auto pkg = RtpPackage();
-	pkg.set_use_extension_headers(true)
-		->set_payload_type(5)
-		->set_sequence_number(10)
-		->set_timestamp(50)
-		->set_synchronization_source_identifier(100)
-		->set_contributing_source_identifiers(128)
-		->set_contributing_source_identifiers(32768)
-		->set_contributing_source_identifiers(8388608)
-		->set_contributing_source_identifiers(2147483648)
-		->set_payload(new vector<uint8_t>{ 'T','e','s','t' });
-
-	auto byteArray = pkg.Build();
-
-	for(int i = 0; i < pkg.getSizeByte(); i++)
-	{
-		int charCode = byteArray->data()[i];
-	}
-
-	auto parsedPkg = RtpPackage::ParsePackage(byteArray);
-
-	return 0;
-
 	Receiver myReceiver;
 
 	myReceiver.start();
