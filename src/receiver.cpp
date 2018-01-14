@@ -7,60 +7,74 @@
  */
 
 #include "receiver.h"
+#include "RtpPackageProvider.h"
 
 using namespace std;
 
 Receiver::Receiver()
-  : self_(),
-    running_(false)
-{}
-
-Receiver::~Receiver() {
-  if (running_) {
-    stop();
-  }
+	: self_(),
+	  running_(false)
+{
 }
 
-void Receiver::start() {
+Receiver::~Receiver()
+{
+	if (running_)
+	{
+		stop();
+	}
+}
+
+void Receiver::start()
+{
 	if (running_)
 		return;
-	
+
 	running_ = true;
 
 	socket_ = new util::UdpSocket();
-	
+
 	receiveAddress_ = new util::Ipv4SocketAddress("0.0.0.0", 8888);
 
 	socket_->open();
 
 	socket_->bind(*receiveAddress_);
 
-  self_ = std::thread( [=] { receive(); });
+	self_ = std::thread([&] { receive(); });
 }
 
-void Receiver::stop() {
-  running_ = false;
-  socket_->close();
+void Receiver::stop()
+{
+	running_ = false;
+	socket_->close();
 
-  self_.join();
-  delete socket_;
-  delete receiveAddress_;
+	self_.join();
+	delete socket_;
+	delete receiveAddress_;
 }
 
-void Receiver::receive() {
-  static bool once = true;
-  while (running_) {
-    if (once) {
-      std::cout << " #### Receiver: This is the receiver thread. Read packets from the network and ";
-      std::cout << "push them into JB for further processing. Keep in mind that proper synchronization is necessary. ####" << std::endl;
-      once = false;
-    }
+void Receiver::receive()
+{
+	static bool once = true;
+	while (running_)
+	{
+		if (once)
+		{
+			cout << " #### Receiver: This is the receiver thread. Read packets from the network and ";
+			cout << "push them into JB for further processing. Keep in mind that proper synchronization is necessary. ####" <<
+				endl;
+			once = false;
+		}
 
-	std::vector<uint8_t>* inputBuffer = new std::vector<uint8_t>(1024, 0);
-	socket_->recvfrom(*receiveAddress_, *inputBuffer, 1024);
+		vector<uint8_t>* inputBuffer = new vector<uint8_t>(4096, 0);
+		socket_->recvfrom(*receiveAddress_, *inputBuffer, 4096);
 
-	cout << "received stuff" << endl;
+		auto pkg = RtpPackage::ParsePackage(inputBuffer);
 
-	delete inputBuffer;
-  }
+
+		cout << "received pkg with version: " << pkg->get_version() << endl;
+
+		delete inputBuffer;
+		delete pkg;
+	}
 }

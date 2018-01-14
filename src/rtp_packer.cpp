@@ -121,7 +121,8 @@ void RtpPacker::PackerLoop()
 
 		queueConsumerCondition_->notify_all();
 
-		delete buffer; //TODO check if this is necessary
+		//Do not delete this !!!
+		//delete buffer; 
 	}
 }
 
