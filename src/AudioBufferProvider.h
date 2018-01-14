@@ -7,6 +7,6 @@ public:
 	virtual util::AudioBuffer const* GetNextAudioBuffer() = 0;
 
 protected:
-	AudioBufferProvider();
-	virtual ~AudioBufferProvider();
+	AudioBufferProvider(){}
+	virtual ~AudioBufferProvider(){}
 };

@@ -110,4 +110,5 @@ int AudioManager::process(util::AudioBuffer& output, util::AudioBuffer const& in
 	}
 	
 	//TODO receive and play audio
+	return 0;
 }

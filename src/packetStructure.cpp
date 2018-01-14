@@ -116,6 +116,12 @@ PacketStrcutre::~PacketStrcutre ( )
 	delete byteBuffer_;
 	byteBuffer_ = nullptr;
 }
+
+std::vector<uint8_t>* PacketStrcutre::GetBuffer() const
+{
+	return byteBuffer_;
+}
+
 int PacketStrcutre::getSizeByte ( )
 {
 	return sizeByte_;

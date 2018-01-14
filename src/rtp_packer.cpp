@@ -142,5 +142,8 @@ RtpPackage* RtpPacker::ConfigurePackage(util::AudioBuffer const* buffer)
 		->set_synchronization_source_identifier(0)
 		->set_payload(payload);
 
+	pkg->Build();
+
 	delete payload;
+	return pkg;
 }

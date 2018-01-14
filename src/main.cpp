@@ -44,27 +44,6 @@ using namespace std;
 
 int main(int argc, char *argv[]) {
   
-	Receiver myReceiver;
-
-	myReceiver.start();
-
-	Sender mySender;
-
-	while (true)
-	{
-		cout << endl << "Type your message:" << endl;
-
-		string message;
-		getline(cin, message);
-
-		if (message == "exit")
-			break;
-
-		mySender.send(vector<uint8_t>(message.begin(), message.end()));
-	}
-
-
-	myReceiver.stop();
 	
 	return 0;
 	

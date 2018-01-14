@@ -11,21 +11,82 @@
 
 using namespace std;
 
-Sender::Sender()
+
+Sender::Sender(RtpPackageProvider * provider)
 {
-	socket_ = new util::UdpSocket();
-	socket_->open();
-	sendToAddress_ = new util::Ipv4SocketAddress("127.0.0.1", 8888);
+	provier_ = provider;
+	isSendingMutex_ = new mutex();
 }
 
 Sender::~Sender()
 {
-	delete socket_;
-	delete sendToAddress_;
+	if (IsSending())
+		StopSending();
+
+	provier_ = nullptr;
+	if(isSendingMutex_ != nullptr)
+	{
+		delete isSendingMutex_;
+		isSendingMutex_ = nullptr;
+	}
 }
 
-void Sender::send(const vector<uint8_t>& data)
+void Sender::StartSending(util::Ipv4SocketAddress const * sendToAddress)
 {
+	if(IsSending())
+		return;
 
+	lock_guard<mutex> isSendingGuard(*isSendingMutex_);
+	isSending_ = true;
+
+	sendToAddress_ = sendToAddress;
+
+	socket_ = new util::UdpSocket();
+	socket_->open();
+
+	workerThread_ = new thread([&] {SendLoop(); });
+}
+
+void Sender::StopSending()
+{
+	if(!IsSending())
+		return;
+
+	{
+		lock_guard<mutex> isSendingGuard(*isSendingMutex_);
+		isSending_ = false;
+	}
+
+	workerThread_->join();
+	
+	delete workerThread_;
+	workerThread_ = nullptr;
+
+	socket_->close();
+	delete socket_;
+	socket_ = nullptr;
+
+	sendToAddress_ = nullptr;
+
+}
+
+bool Sender::IsSending()
+{
+	lock_guard<mutex> isSendingGuard(*isSendingMutex_);
+	return isSending_;
+}
+
+void Sender::Send(const vector<uint8_t>& data)
+{
 	socket_->sendto(*sendToAddress_, data);
+}
+
+void Sender::SendLoop()
+{
+	while (IsSending())
+	{
+		auto pkg = provier_->GetNextRtpPackage();
+		Send(*pkg->GetBuffer());
+		delete pkg;
+	}
 }

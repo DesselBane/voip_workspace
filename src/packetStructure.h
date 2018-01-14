@@ -17,6 +17,6 @@ protected:
 public:
 	virtual ~PacketStrcutre();
 	virtual std::vector<uint8_t>* Build() = 0;
-	char* getBuffer();
+	std::vector<uint8_t>* GetBuffer() const;
 	int getSizeByte();
 };
