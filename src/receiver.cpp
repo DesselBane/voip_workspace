@@ -59,8 +59,7 @@ void Receiver::receive() {
 	std::vector<uint8_t>* inputBuffer = new std::vector<uint8_t>(1024, 0);
 	socket_->recvfrom(*receiveAddress_, *inputBuffer, 1024);
 
-	string message(inputBuffer->begin(), inputBuffer->end());
-	std::cout << ">>>>  " << message << endl;
+	cout << "received stuff" << endl;
 
 	delete inputBuffer;
   }

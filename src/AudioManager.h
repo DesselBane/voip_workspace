@@ -2,12 +2,10 @@
 #include <soundcard.h>
 #include <queue>
 #include <mutex>
+#include <condition_variable>
 #include "AudioBufferProvider.h"
 
 using namespace std;
-
-
-
 
 class AudioManager : public util::AudioIO, public AudioBufferProvider
 {
@@ -27,8 +25,7 @@ private:
 	queue<util::AudioBuffer const*>* audioBufferQueue_ = nullptr;
 	bool isRecording_ = false;
 	mutex* queueEditMutex_ = nullptr;
-	mutex* queueConsumerMutex_ = nullptr;
-	lock_guard<mutex>* consumerGuard_ = nullptr;
+	condition_variable* queueConsumerCondition_ = nullptr;
 	mutex* isRecordingMutex_ = nullptr;
 
 };

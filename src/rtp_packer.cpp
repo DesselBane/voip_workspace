@@ -11,6 +11,7 @@
 RtpPacker::RtpPacker(AudioBufferProvider* provider)
 {
 	provider_ = provider;
+	isPackingMutex_ = new mutex();
 }
 
 RtpPacker::~RtpPacker()
@@ -19,6 +20,12 @@ RtpPacker::~RtpPacker()
 		StopPacking();
 
 	provider_ = nullptr;
+
+	if(isPackingMutex_ != nullptr)
+	{
+		delete isPackingMutex_;
+		isPackingMutex_ = nullptr;
+	}
 }
 
 void RtpPacker::StartPacking()
@@ -30,8 +37,8 @@ void RtpPacker::StartPacking()
 	isPacking_ = true;
 
 	queueEditMutex_ = new mutex();
-	queueConsumerMutex_ = new mutex();
-	packageQueue = new queue<RtpPackage const*>();
+	queueConsumerCondition_ = new condition_variable();
+	packageQueue_ = new queue<RtpPackage const*>();
 
 	workerThread_ = new thread([&] { PackerLoop(); });
 }
@@ -47,10 +54,10 @@ void RtpPacker::StopPacking()
 
 		{
 			lock_guard<mutex> queueEditGuard(*queueEditMutex_);
-			if (packageQueue != nullptr)
+			if (packageQueue_ != nullptr)
 			{
-				delete packageQueue;
-				packageQueue = nullptr;
+				delete packageQueue_;
+				packageQueue_ = nullptr;
 			}
 		}
 		if (queueEditMutex_ != nullptr)
@@ -59,16 +66,10 @@ void RtpPacker::StopPacking()
 			queueEditMutex_ = nullptr;
 		}
 
-		if (consumerGuard_ != nullptr)
+		if (queueConsumerCondition_ != nullptr)
 		{
-			delete consumerGuard_;
-			consumerGuard_ = nullptr;
-		}
-
-		if (queueConsumerMutex_ != nullptr)
-		{
-			delete queueConsumerMutex_;
-			queueConsumerMutex_ = nullptr;
+			delete queueConsumerCondition_;
+			queueConsumerCondition_ = nullptr;
 		}
 	}
 
@@ -87,22 +88,22 @@ RtpPackage const* RtpPacker::GetNextRtpPackage()
 {
 	if (!IsPacking())
 		return nullptr;
-	{
-		lock_guard<mutex> consumerGuard(*queueConsumerMutex_);
-	}
 	
 	{
 		lock_guard<mutex> editGuard(*queueEditMutex_);
 
-		if (!packageQueue->empty())
+		if (!packageQueue_->empty())
 		{
-			auto pkg = packageQueue->front();
-			packageQueue->pop();
+			auto pkg = packageQueue_->front();
+			packageQueue_->pop();
 			return pkg;
 		}
 	}
 
-	consumerGuard_ = new lock_guard<mutex>(*queueConsumerMutex_);
+	mutex mtx;
+	unique_lock<mutex> lock(mtx);
+	queueConsumerCondition_->wait(lock);
+	
 	return GetNextRtpPackage();
 }
 
@@ -115,14 +116,10 @@ void RtpPacker::PackerLoop()
 
 		{
 			lock_guard<mutex> queueEditGuard(*queueEditMutex_);
-			packageQueue->push(pkg);
+			packageQueue_->push(pkg);
 		}
 
-		if(consumerGuard_ != nullptr)
-		{
-			delete consumerGuard_;
-			consumerGuard_ = nullptr;
-		}
+		queueConsumerCondition_->notify_all();
 
 		delete buffer; //TODO check if this is necessary
 	}

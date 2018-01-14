@@ -14,6 +14,7 @@
 #include <thread>
 #include <mutex>
 #include <queue>
+#include <condition_variable>
 
 using namespace std;
 
@@ -38,9 +39,8 @@ private:
 	thread* workerThread_ = nullptr;
 	mutex* isPackingMutex_ = nullptr;
 	mutex* queueEditMutex_ = nullptr;
-	mutex* queueConsumerMutex_ = nullptr;
-	lock_guard<mutex>* consumerGuard_ = nullptr;
-	queue<RtpPackage const*>* packageQueue = nullptr;
+	condition_variable* queueConsumerCondition_ = nullptr;
+	queue<RtpPackage const*>* packageQueue_ = nullptr;
 };
 
 #endif /* VOIP_RTP_PACKER_H */

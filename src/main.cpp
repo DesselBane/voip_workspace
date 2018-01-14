@@ -42,13 +42,8 @@
 
 using namespace std;
 
-int main(int argc, char *argv[]) {
-  
-	
-	return 0;
-	
-	
-	
+int main(int argc, char* argv[])
+{
 	VoIPComm communicator;
-  return communicator.exec(argc, argv);
+	return communicator.exec(argc, argv);
 }

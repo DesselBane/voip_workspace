@@ -43,45 +43,12 @@
 #include "receiver.h"
 
 #include "tclap/CmdLine.h"
+#include "sender.h"
+#include "AudioManager.h"
+#include "rtp_packer.h"
 
 using namespace std;
 
-int VoIPComm::process(util::AudioBuffer& output, util::AudioBuffer const& input) {
-	float* buff = reinterpret_cast<float*>(output.data());
-
-	for (int i = 0; i < input.nSamples(); i++)
-	{
-		buff[output.channels()*i] = ((float*)input.data())[i];
-
-		switch (output.channels())
-		{
-		case 8:
-			buff[output.channels()*i + 7] = 0;
-
-		case 7:
-			buff[output.channels()*i + 6] = 0;
-
-		case 6:
-			buff[output.channels()*i + 5] = 0;
-
-		case 5:
-			buff[output.channels()*i + 4] = 0;
-
-		case 4:
-			buff[output.channels()*i + 3] = 0;
-
-		case 3:
-			buff[output.channels()*i + 2] = 0;
-
-		case 2:
-			buff[output.channels()*i + 1] = ((float*)input.data())[i];
-			break;
-		}
-		
-	}
-
-	return 0;
-}
 
 VoIPComm::VoIPComm() {}
 VoIPComm::~VoIPComm() {}
@@ -89,20 +56,48 @@ VoIPComm::~VoIPComm() {}
 int VoIPComm::exec(int argc, char *argv[]) {
 
 	cout << "Starting SoundCard" << endl;
-	util::SoundCard mySoundCard(this);
+	
+	//Create Object Graph
+	auto destAddress = new util::Ipv4SocketAddress("127.0.0.1", 8888);
+
+	auto receiver = new Receiver();
+
+	auto audioManager = new AudioManager();
+	util::SoundCard mySoundCard(audioManager);
+	auto packer = new RtpPacker(audioManager);
+	auto sender = new Sender(packer);
+	
+
+	//Configure
 	mySoundCard.init(-1,-1,1,8,44100,512,util::AudioBuffer::FLOAT32);
+		
+	//Start
+	receiver->start();
+	audioManager->StartRecording();
+	packer->StartPacking();
+	sender->StartSending(destAddress);
 	mySoundCard.start();
 
 	// Just wait for enter
 	char input;
 	std::cin.get(input);
 
+	//Stop
 	mySoundCard.stop();
+	sender->StopSending();
+	packer->StopPacking();
+	audioManager->StopRecording();
+	receiver->stop();
+
+	//Cleanup
+	delete sender;
+	delete packer;
+	delete audioManager;
+	delete receiver;
+	delete destAddress;
 
 	return 0;
-
-
-
+	
 
 	if (!init(argc, argv)) {
 		std::cerr << "Error initializing!" << std::endl;
