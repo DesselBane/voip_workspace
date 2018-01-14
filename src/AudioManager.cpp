@@ -18,26 +18,41 @@ AudioManager::~AudioManager()
 	}
 }
 
-const util::AudioBuffer* AudioManager::getNextAudioBuffer()
+const util::AudioBuffer* AudioManager::GetNextAudioBuffer()
 {
 	if(!IsRecording())
 		return nullptr;
 
-	lock_guard<mutex> consumerGuard(*queueConsumerMutex_);
-	lock_guard<mutex> editGuard(*queueEditMutex_);
-	auto retVal = audioBufferQueue_->front();
-	audioBufferQueue_->pop();
-	return retVal;
+	{
+		lock_guard<mutex> consumerGuard(*queueConsumerMutex_);
+	}
+	{
+		lock_guard<mutex> editGuard(*queueEditMutex_);
+
+		if(!audioBufferQueue_->empty())
+		{
+			auto retVal = audioBufferQueue_->front();
+			audioBufferQueue_->pop();
+			return retVal;
+		}
+	}
+
+	consumerGuard_ = new lock_guard<mutex>(*queueConsumerMutex_);
+	return GetNextAudioBuffer();
 }
 
 void AudioManager::StartRecording()
 {
+	if(IsRecording())
+		return;
+
+	lock_guard<mutex> recordingGuard(*isRecordingMutex_);
+	isRecording_ = true;
+
 	audioBufferQueue_ = new queue<util::AudioBuffer const*>();
 	queueEditMutex_ = new mutex();
 	queueConsumerMutex_ = new mutex();
 
-	lock_guard<mutex> recordingGuard(*isRecordingMutex_);
-	isRecording_ = true;
 }
 
 void AudioManager::StopRecording()
@@ -60,10 +75,10 @@ void AudioManager::StopRecording()
 		queueEditMutex_ = nullptr;
 	}
 
-	if (consumerGuard != nullptr)
+	if (consumerGuard_ != nullptr)
 	{
-		delete consumerGuard;
-		consumerGuard = nullptr;
+		delete consumerGuard_;
+		consumerGuard_ = nullptr;
 	}
 
 	if(queueConsumerMutex_ != nullptr)
@@ -88,10 +103,10 @@ int AudioManager::process(util::AudioBuffer& output, util::AudioBuffer const& in
 		lock_guard<mutex> editGuard(*queueEditMutex_);
 		audioBufferQueue_->push(&input);
 	}
-	if(consumerGuard != nullptr)
+	if(consumerGuard_ != nullptr)
 	{
-		delete consumerGuard;
-		consumerGuard = nullptr;
+		delete consumerGuard_;
+		consumerGuard_ = nullptr;
 	}
 	
 	//TODO receive and play audio

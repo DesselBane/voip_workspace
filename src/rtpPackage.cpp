@@ -7,6 +7,12 @@ RtpPackage::~RtpPackage ( )
 {
 	delete contributingSourceIdentifiers;
 	contributingSourceIdentifiers = nullptr;
+
+	if(payload_ != nullptr)
+	{
+		delete payload_;
+		payload_ = nullptr;
+	}
 }
 
 std::vector<uint8_t>* RtpPackage::Build()
@@ -123,7 +129,7 @@ RtpPackage* RtpPackage::set_synchronization_source_identifier ( uint32_t synchro
 std::vector<uint8_t>* RtpPackage::get_payload() const { return payload_; }
 RtpPackage* RtpPackage::set_payload (std::vector<uint8_t>* payload)
 {
-	payload_ = payload; // TODO copy
+	payload_ = new vector<uint8_t>(payload->begin(), payload->end());
 	return this;
 }
 

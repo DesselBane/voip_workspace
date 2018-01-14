@@ -2,25 +2,20 @@
 #include <soundcard.h>
 #include <queue>
 #include <mutex>
+#include "AudioBufferProvider.h"
 
 using namespace std;
 
 
-class AudioBufferProvider
-{
-	virtual const util::AudioBuffer* getNextAudioBuffer() = 0;
 
-protected:
-	AudioBufferProvider();
-	virtual ~AudioBufferProvider();
-};
 
 class AudioManager : public util::AudioIO, public AudioBufferProvider
 {
+public:
 	explicit AudioManager();
 	virtual ~AudioManager();
 
-	const util::AudioBuffer* getNextAudioBuffer() override;
+	const util::AudioBuffer* GetNextAudioBuffer() override;
 	
 	void StartRecording();
 	void StopRecording();
@@ -33,7 +28,7 @@ private:
 	bool isRecording_ = false;
 	mutex* queueEditMutex_ = nullptr;
 	mutex* queueConsumerMutex_ = nullptr;
-	lock_guard<mutex>* consumerGuard = nullptr;
+	lock_guard<mutex>* consumerGuard_ = nullptr;
 	mutex* isRecordingMutex_ = nullptr;
 
 };
