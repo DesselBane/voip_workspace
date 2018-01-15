@@ -8,73 +8,121 @@
 
 #include "receiver.h"
 #include "RtpPackageProvider.h"
+#include <iostream>
 
 using namespace std;
 
 Receiver::Receiver()
-	: self_(),
-	  running_(false)
 {
+	isReceivingMutex_ = new mutex();
 }
 
 Receiver::~Receiver()
 {
-	if (running_)
+	if (IsReceiving())
+		Stop();
+
+	if(isReceivingMutex_ != nullptr)
 	{
-		stop();
+		delete isReceivingMutex_;
+		isReceivingMutex_ = nullptr;
 	}
 }
 
-void Receiver::start()
+void Receiver::Start(util::Ipv4SocketAddress const * listenAddress, util::Ipv4SocketAddress* receiveFromAddress)
 {
-	if (running_)
+	if (IsReceiving())
 		return;
 
-	running_ = true;
+	lock_guard<mutex> isReceivingGuard(*isReceivingMutex_);
+	isReceiving_ = true;
+
+	receiveAddress_ = receiveFromAddress;
+
+	dataQueue_ = new queue<vector<uint8_t>*>();
+	queueEditMutex_ = new mutex();
+	consumerCondition_ = new condition_variable();
 
 	socket_ = new util::UdpSocket();
-
-	receiveAddress_ = new util::Ipv4SocketAddress("0.0.0.0", 8888);
-
 	socket_->open();
+	socket_->bind(*listenAddress);
 
-	socket_->bind(*receiveAddress_);
-
-	self_ = std::thread([&] { receive(); });
+	self_ = std::thread([&] { ReceiveLoop(); });
 }
 
-void Receiver::stop()
+void Receiver::Stop()
 {
-	running_ = false;
-	socket_->close();
+	if(!IsReceiving())
+		return;
 
+	lock_guard<mutex> isReceivingGuard(*isReceivingMutex_);
+
+	isReceiving_ = false;
+
+	socket_->close();
 	self_.join();
 	delete socket_;
 	delete receiveAddress_;
+
+	if(consumerCondition_ != nullptr)
+	{
+		delete consumerCondition_;
+		consumerCondition_ = nullptr;
+	}
+
+	if(queueEditMutex_ != nullptr)
+	{
+		delete queueEditMutex_;
+		queueEditMutex_ = nullptr;
+	}
+
+	if(dataQueue_ != nullptr)
+	{
+		delete dataQueue_;
+		dataQueue_ = nullptr;
+	}
 }
 
-void Receiver::receive()
+bool Receiver::IsReceiving() const
 {
-	static bool once = true;
-	while (running_)
-	{
-		if (once)
-		{
-			cout << " #### Receiver: This is the receiver thread. Read packets from the network and ";
-			cout << "push them into JB for further processing. Keep in mind that proper synchronization is necessary. ####" <<
-				endl;
-			once = false;
-		}
+	lock_guard<mutex> isReceivingGuard(*isReceivingMutex_);
+	return isReceiving_;
+}
 
-		vector<uint8_t>* inputBuffer = new vector<uint8_t>(4096, 0);
+vector<uint8_t>* Receiver::GetNextDataPackage()
+{
+	if(!IsReceiving())
+		return nullptr;
+
+	{
+		lock_guard<mutex> editGuard(*queueEditMutex_);
+		if(!dataQueue_->empty())
+		{
+			auto data = dataQueue_->front();
+			dataQueue_->pop();
+			return data;
+		}
+	}
+
+	mutex mtx;
+	unique_lock<mutex> lock(mtx);
+
+	consumerCondition_->wait(lock);
+	return GetNextDataPackage();
+}
+
+void Receiver::ReceiveLoop()
+{
+	while (IsReceiving())
+	{
+		auto inputBuffer = new vector<uint8_t>(4096, 0); //TODO receive byte length dependes on mode etc
 		socket_->recvfrom(*receiveAddress_, *inputBuffer, 4096);
 
-		auto pkg = RtpPackage::ParsePackage(inputBuffer);
+		{
+			lock_guard<mutex> editGuard(*queueEditMutex_);
+			dataQueue_->push(inputBuffer);
+		}
 
-
-		cout << "received pkg with version: " << pkg->get_version() << endl;
-
-		delete inputBuffer;
-		delete pkg;
+		consumerCondition_->notify_all();
 	}
 }

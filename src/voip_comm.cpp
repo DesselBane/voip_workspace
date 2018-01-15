@@ -59,6 +59,7 @@ int VoIPComm::exec(int argc, char *argv[]) {
 	
 	//Create Object Graph
 	auto destAddress = new util::Ipv4SocketAddress("127.0.0.1", 8888);
+	auto listenAddress = new util::Ipv4SocketAddress("0.0.0.0", 8888);
 
 	auto receiver = new Receiver();
 
@@ -72,7 +73,7 @@ int VoIPComm::exec(int argc, char *argv[]) {
 	mySoundCard.init(-1,-1,1,8,44100,512,util::AudioBuffer::FLOAT32);
 		
 	//Start
-	receiver->start();
+	receiver->Start(listenAddress,destAddress);
 	audioManager->StartRecording();
 	packer->StartPacking();
 	sender->StartSending(destAddress);
@@ -87,7 +88,7 @@ int VoIPComm::exec(int argc, char *argv[]) {
 	sender->StopSending();
 	packer->StopPacking();
 	audioManager->StopRecording();
-	receiver->stop();
+	receiver->Stop();
 
 	//Cleanup
 	delete sender;

@@ -10,24 +10,34 @@
 #define VOIP_RECEIVER_H
 
 #include <thread>
-#include <iostream>
 #include <socket.h>
+#include "NetworkDataProvider.h"
+#include <mutex>
+#include <queue>
 
-class Receiver {
+class Receiver : public NetworkDataProvider
+{
 public:
-  Receiver();
-  ~Receiver();
+	Receiver();
+	~Receiver();
 
-  void start();
-  void stop();
+	void Start(util::Ipv4SocketAddress const * listenAddress, util::Ipv4SocketAddress* receiveFromAddress);
+	void Stop();
+	bool IsReceiving() const;
+	vector<uint8_t>* GetNextDataPackage() override;
 
 private:
-  void receive();
+	void ReceiveLoop();
 
-  std::thread self_;
-  bool        running_;
-  util::UdpSocket* socket_;
-  util::Ipv4SocketAddress* receiveAddress_;
+	bool isReceiving_ = false;
+	thread self_;
+	util::UdpSocket* socket_ = nullptr;
+	util::Ipv4SocketAddress* receiveAddress_ = nullptr;
+	mutex* isReceivingMutex_ = nullptr;
+	mutex* queueEditMutex_ = nullptr;
+	condition_variable* consumerCondition_ = nullptr;
+	queue<vector<uint8_t>*>* dataQueue_ = nullptr;
+
 };
 
 #endif /* VOIP_RECEIVER_H */
