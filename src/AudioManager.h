@@ -10,7 +10,7 @@ using namespace std;
 class AudioManager : public util::AudioIO, public AudioBufferProvider
 {
 public:
-	explicit AudioManager();
+	explicit AudioManager(AudioBufferProvider* provider);
 	virtual ~AudioManager();
 
 	const util::AudioBuffer* GetNextAudioBuffer() override;
@@ -27,4 +27,5 @@ private:
 	mutex* queueEditMutex_ = nullptr;
 	condition_variable* queueConsumerCondition_ = nullptr;
 	mutex* isRecordingMutex_ = nullptr;
+	AudioBufferProvider* provider_;
 };

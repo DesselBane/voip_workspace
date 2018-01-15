@@ -46,6 +46,7 @@
 #include "AudioManager.h"
 #include "VoipComm.h"
 #include "RtpPacker.h"
+#include "RtpDepacker.h"
 
 using namespace std;
 
@@ -67,8 +68,9 @@ int VoIPComm::exec(int argc, char* argv[])
 	auto const listenAddress = new util::Ipv4SocketAddress("0.0.0.0", 8888);
 
 	auto receiver = new Receiver();
+	auto depacker = new RtpDepacker(receiver);
 
-	auto audioManager = new AudioManager();
+	auto audioManager = new AudioManager(depacker);
 	util::SoundCard mySoundCard(audioManager);
 	auto packer = new RtpPacker(audioManager);
 	auto sender = new Sender(packer);
@@ -79,6 +81,8 @@ int VoIPComm::exec(int argc, char* argv[])
 
 	//Start
 	receiver->Start(listenAddress, destAddress);
+	depacker->StartUnpacking();
+
 	audioManager->StartRecording();
 	packer->StartPacking();
 	sender->StartSending(destAddress);
@@ -89,18 +93,24 @@ int VoIPComm::exec(int argc, char* argv[])
 	cin.get(input);
 
 	//Stop
-	mySoundCard.stop();
 	sender->StopSending();
 	packer->StopPacking();
 	audioManager->StopRecording();
 	receiver->Stop();
+	depacker->StopUnpacking();
+	mySoundCard.stop();
+
 
 	//Cleanup
 	delete sender;
 	delete packer;
 	delete audioManager;
 	delete receiver;
+	delete listenAddress;
 	delete destAddress;
+
+	cout << "Program finished press <enter> to exit" << endl;
+	cin.get(input);
 
 	return 0;
 

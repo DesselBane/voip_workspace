@@ -8,6 +8,7 @@
 
 #include "RtpDepacker.h"
 #include "RtpPackageProvider.h"
+#include <iostream>
 
 RtpDepacker::RtpDepacker(NetworkDataProvider* provider)
 {
@@ -31,6 +32,8 @@ void RtpDepacker::StartUnpacking()
 	if (IsUnpacking())
 		return;
 
+	cout << "Starting to unpack" << endl;
+
 	lock_guard<mutex> isUnpacking(*isUnpackingMutex_);
 	isUnpacking_ = true;
 
@@ -45,10 +48,13 @@ void RtpDepacker::StopUnpacking()
 	if (!IsUnpacking())
 		return;
 
+	cout << "Stopping to unpack";
+
 	{
 		lock_guard<mutex> isUnpackingGuard(*isUnpackingMutex_);
 		isUnpacking_ = false;
 	}
+
 	workderThread_->join();
 	delete workderThread_;
 	workderThread_ = nullptr;
@@ -64,6 +70,8 @@ void RtpDepacker::StopUnpacking()
 		delete queueEditMutex_;
 		queueEditMutex_ = nullptr;
 	}
+
+	cout << " ...done" << endl;
 }
 
 bool RtpDepacker::IsUnpacking() const
@@ -74,12 +82,12 @@ bool RtpDepacker::IsUnpacking() const
 
 util::AudioBuffer const* RtpDepacker::GetNextAudioBuffer()
 {
-	if(!IsUnpacking())
+	if (!IsUnpacking())
 		return nullptr;
 
 	lock_guard<mutex> editGuard(*queueEditMutex_);
-	
-	if(audioQueue_->empty())
+
+	if (audioQueue_->empty())
 		return nullptr;
 
 	auto retVal = audioQueue_->front();
@@ -92,15 +100,19 @@ void RtpDepacker::UnpackLoop()
 	while (IsUnpacking())
 	{
 		auto data = provider_->GetNextDataPackage();
-		auto audioBuffer = Unpack(data);
 
-		if (audioBuffer != nullptr)
+		if (data != nullptr)
 		{
-			lock_guard<mutex> editGuard(*queueEditMutex_);
-			audioQueue_->push(audioBuffer);
-		}
+			auto audioBuffer = Unpack(data);
 
-		delete data;
+			if (audioBuffer != nullptr)
+			{
+				lock_guard<mutex> editGuard(*queueEditMutex_);
+				audioQueue_->push(audioBuffer);
+			}
+
+			delete data;
+		}
 	}
 }
 
@@ -108,7 +120,7 @@ util::AudioBuffer* RtpDepacker::Unpack(vector<uint8_t> const* data)
 {
 	auto pkg = RtpPackage::ParsePackage(data);
 
-	if(!pkg->IsValid())
+	if (!pkg->IsValid())
 		return nullptr;
 
 	auto buffer = new util::AudioBuffer(512, 8, 44100, util::AudioBuffer::FLOAT32); //TODO add options

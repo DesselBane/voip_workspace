@@ -55,7 +55,7 @@ public:
   } SampleFormat;
 
   AudioBuffer();
-  AudioBuffer(uint32_t fs, uint32_t nch, uint32_t sr, AudioBuffer::SampleFormat fmt = FLOAT32);
+  AudioBuffer(uint32_t frameSize, uint32_t channelCount, uint32_t sampleRate, AudioBuffer::SampleFormat format = FLOAT32);
   AudioBuffer(AudioBuffer const& rhs);
   AudioBuffer& operator=(AudioBuffer const& rhs);
 

@@ -1,9 +1,11 @@
 #include "AudioManager.h"
+#include <iostream>
 
 
-AudioManager::AudioManager()
+AudioManager::AudioManager(AudioBufferProvider* provider)
 {
 	isRecordingMutex_ = new mutex();
+	provider_ = provider;
 }
 
 AudioManager::~AudioManager()
@@ -16,6 +18,8 @@ AudioManager::~AudioManager()
 		delete isRecordingMutex_;
 		isRecordingMutex_ = nullptr;
 	}
+
+	provider_ = nullptr;
 }
 
 const util::AudioBuffer* AudioManager::GetNextAudioBuffer()
@@ -46,6 +50,8 @@ void AudioManager::StartRecording()
 	if (IsRecording())
 		return;
 
+	cout << "Starting to record" << endl;
+
 	lock_guard<mutex> recordingGuard(*isRecordingMutex_);
 	isRecording_ = true;
 
@@ -56,8 +62,13 @@ void AudioManager::StartRecording()
 
 void AudioManager::StopRecording()
 {
+	if(!IsRecording())
+		return;
+
 	lock_guard<mutex> recordingGuard(*isRecordingMutex_);
 	isRecording_ = false;
+
+	cout << "Stopping to record";
 
 	{
 		lock_guard<mutex> editGuard(*queueEditMutex_);
@@ -79,6 +90,8 @@ void AudioManager::StopRecording()
 		delete queueConsumerCondition_;
 		queueConsumerCondition_ = nullptr;
 	}
+
+	cout << " ...done" << endl;
 }
 
 bool AudioManager::IsRecording()
@@ -99,6 +112,15 @@ int AudioManager::process(util::AudioBuffer& output, util::AudioBuffer const& in
 
 	queueConsumerCondition_->notify_all();
 
-	//TODO receive and play audio
+	auto audio = provider_->GetNextAudioBuffer();
+
+	if (audio != nullptr)
+	{
+		cout << "audio was there" << endl;
+		output = util::AudioBuffer(*audio);
+
+		delete audio;
+	}
+
 	return 0;
 }

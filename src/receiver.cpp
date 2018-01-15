@@ -34,6 +34,8 @@ void Receiver::Start(util::Ipv4SocketAddress const* listenAddress, util::Ipv4Soc
 	if (IsReceiving())
 		return;
 
+	cout << "Starting to receive" << endl;
+
 	lock_guard<mutex> isReceivingGuard(*isReceivingMutex_);
 	isReceiving_ = true;
 
@@ -55,14 +57,16 @@ void Receiver::Stop()
 	if (!IsReceiving())
 		return;
 
-	lock_guard<mutex> isReceivingGuard(*isReceivingMutex_);
+	cout << "Stopping to receive";
 
-	isReceiving_ = false;
+	{
+		lock_guard<mutex> isReceivingGuard(*isReceivingMutex_);
+		isReceiving_ = false;
+	}
 
 	socket_->close();
 	self_.join();
 	delete socket_;
-	delete receiveAddress_;
 
 	if (consumerCondition_ != nullptr)
 	{
@@ -81,6 +85,8 @@ void Receiver::Stop()
 		delete dataQueue_;
 		dataQueue_ = nullptr;
 	}
+
+	cout << " ...done" << endl;
 }
 
 bool Receiver::IsReceiving() const
@@ -118,7 +124,7 @@ void Receiver::ReceiveLoop()
 		auto inputBuffer = new vector<uint8_t>(4096, 0); //TODO receive byte length dependes on mode etc
 		socket_->recvfrom(*receiveAddress_, *inputBuffer, 4096);
 
-		{
+		if(inputBuffer != nullptr){
 			lock_guard<mutex> editGuard(*queueEditMutex_);
 			dataQueue_->push(inputBuffer);
 		}

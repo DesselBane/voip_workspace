@@ -7,6 +7,7 @@
  */
 
 #include "RtpPacker.h"
+#include <iostream>
 
 RtpPacker::RtpPacker(AudioBufferProvider* provider)
 {
@@ -33,6 +34,8 @@ void RtpPacker::StartPacking()
 	if (IsPacking())
 		return;
 
+	cout << "Starting to pack" << endl;
+
 	lock_guard<mutex> isPackingGuard(*isPackingMutex_);
 	isPacking_ = true;
 
@@ -48,34 +51,38 @@ void RtpPacker::StopPacking()
 	if (!IsPacking())
 		return;
 
+	cout << "Stopping to pack";
+
 	{
 		lock_guard<mutex> isPackingGuard(*isPackingMutex_);
 		isPacking_ = false;
-
-		{
-			lock_guard<mutex> queueEditGuard(*queueEditMutex_);
-			if (packageQueue_ != nullptr)
-			{
-				delete packageQueue_;
-				packageQueue_ = nullptr;
-			}
-		}
-		if (queueEditMutex_ != nullptr)
-		{
-			delete queueEditMutex_;
-			queueEditMutex_ = nullptr;
-		}
-
-		if (queueConsumerCondition_ != nullptr)
-		{
-			delete queueConsumerCondition_;
-			queueConsumerCondition_ = nullptr;
-		}
 	}
 
 	workerThread_->join();
 	delete workerThread_;
 	workerThread_ = nullptr;
+
+	{
+		lock_guard<mutex> queueEditGuard(*queueEditMutex_);
+		if (packageQueue_ != nullptr)
+		{
+			delete packageQueue_;
+			packageQueue_ = nullptr;
+		}
+	}
+	if (queueEditMutex_ != nullptr)
+	{
+		delete queueEditMutex_;
+		queueEditMutex_ = nullptr;
+	}
+
+	if (queueConsumerCondition_ != nullptr)
+	{
+		delete queueConsumerCondition_;
+		queueConsumerCondition_ = nullptr;
+	}
+
+	cout << "   ...done" << endl;
 }
 
 bool RtpPacker::IsPacking()
@@ -102,7 +109,7 @@ RtpPackage const* RtpPacker::GetNextRtpPackage()
 
 	mutex mtx;
 	unique_lock<mutex> lock(mtx);
-	queueConsumerCondition_->wait(lock);
+	queueConsumerCondition_->wait_for(lock, 100ms);
 
 	return GetNextRtpPackage();
 }

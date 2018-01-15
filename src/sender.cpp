@@ -36,6 +36,8 @@ void Sender::StartSending(util::Ipv4SocketAddress const* sendToAddress)
 	if (IsSending())
 		return;
 
+	cout << "Starting to send" << endl;
+
 	lock_guard<mutex> isSendingGuard(*isSendingMutex_);
 	isSending_ = true;
 
@@ -52,8 +54,10 @@ void Sender::StopSending()
 	if (!IsSending())
 		return;
 
+	cout << "Stopping to send";
+
 	{
-		lock_guard<mutex> isSendingGuard(*isSendingMutex_);
+		lock_guard<mutex> isSendingGuard (*isSendingMutex_);
 		isSending_ = false;
 	}
 
@@ -67,6 +71,8 @@ void Sender::StopSending()
 	socket_ = nullptr;
 
 	sendToAddress_ = nullptr;
+
+	cout << "   ...done" << endl;
 }
 
 bool Sender::IsSending()
