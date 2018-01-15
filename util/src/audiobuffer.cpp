@@ -50,14 +50,14 @@ AudioBuffer::AudioBuffer()
 {}
 
 
-AudioBuffer::AudioBuffer(uint32_t fs, uint32_t nch,
-                         uint32_t sr,
-                         AudioBuffer::SampleFormat fmt)
-  : frameSize_(fs),
-    nChannels_(nch),
-    sampleRate_(sr),
-    format_(fmt),
-    data_(fs*nch*(int)fmt/8, 0)
+AudioBuffer::AudioBuffer(uint32_t frameSize, uint32_t channelCount,
+                         uint32_t sampleRate,
+                         AudioBuffer::SampleFormat format)
+  : frameSize_(frameSize),
+    nChannels_(channelCount),
+    sampleRate_(sampleRate),
+    format_(format),
+    data_(frameSize*channelCount*(int)format/8, 0)
 {}
 
 // Note: this may be inefficient
