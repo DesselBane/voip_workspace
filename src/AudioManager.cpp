@@ -116,7 +116,6 @@ int AudioManager::process(util::AudioBuffer& output, util::AudioBuffer const& in
 
 	if (audio != nullptr)
 	{
-		cout << "audio was there" << endl;
 		output = util::AudioBuffer(*audio);
 
 		delete audio;

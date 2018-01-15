@@ -80,7 +80,7 @@ int VoIPComm::exec(int argc, char* argv[])
 	mySoundCard.init(-1, -1, 1, 8, 44100, 512, util::AudioBuffer::FLOAT32);
 
 	//Start
-	receiver->Start(listenAddress, destAddress);
+	receiver->Start(listenAddress, listenAddress);
 	depacker->StartUnpacking();
 
 	audioManager->StartRecording();
