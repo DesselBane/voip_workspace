@@ -1,7 +1,9 @@
 #pragma once
 #include <vector>
 
-class PacketStrcutre
+using namespace std;
+
+class PacketStructure
 {
 protected:
 	vector<uint8_t>* byteBuffer_ = nullptr;
@@ -15,7 +17,7 @@ protected:
 
 
 public:
-	virtual ~PacketStrcutre();
+	virtual ~PacketStructure();
 	virtual vector<uint8_t>* Build() = 0;
 	vector<uint8_t>* GetBuffer() const;
 	int getSizeByte();

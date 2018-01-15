@@ -165,40 +165,40 @@ SoundCard::~SoundCard() {
   delete impl_;
 }
 
-bool SoundCard::init(int inDev, int outDev , unsigned int inCh,
-                     unsigned int outCh, unsigned int sr,
-                     unsigned int fs, util::AudioBuffer::SampleFormat sampleFormat)
+bool SoundCard::init(int inputDevice, int outputDevice , unsigned int inputChannels,
+                     unsigned int outputChannels, unsigned int sampleRate,
+                     unsigned int frameSize, util::AudioBuffer::SampleFormat sampleFormat)
 {
-  if (inCh == 0 || // Ususally you could signal non-duplex mode by setting nCh to 0
-      outCh == 0 ||
-      sr == 0 ||
-      fs == 0 ||
+  if (inputChannels == 0 || // Ususally you could signal non-duplex mode by setting nCh to 0
+      outputChannels == 0 ||
+      sampleRate == 0 ||
+      frameSize == 0 ||
       sampleFormat == util::AudioBuffer::UNKNOWN)
     return false;
 
-    if (inDev < 0)
-      inDev = impl_->audio_.getDefaultInputDevice();
+    if (inputDevice < 0)
+      inputDevice = impl_->audio_.getDefaultInputDevice();
 
-    if (outDev < 0)
-      outDev = impl_->audio_.getDefaultOutputDevice();
+    if (outputDevice < 0)
+      outputDevice = impl_->audio_.getDefaultOutputDevice();
 
-    impl_->inputParameters_.deviceId     = inDev;
-    impl_->inputParameters_.nChannels    = inCh;
+    impl_->inputParameters_.deviceId     = inputDevice;
+    impl_->inputParameters_.nChannels    = inputChannels;
     impl_->inputParameters_.firstChannel = 0;
 
-    impl_->outputParameters_.deviceId     = outDev;
-    impl_->outputParameters_.nChannels    = outCh;
+    impl_->outputParameters_.deviceId     = outputDevice;
+    impl_->outputParameters_.nChannels    = outputChannels;
     impl_->outputParameters_.firstChannel = 0;
 
-    impl_->sr_  = sr;
-    impl_->fs_  = fs;
+    impl_->sr_  = sampleRate;
+    impl_->fs_  = frameSize;
     impl_->fmt_ = sampleFormat;
 
     impl_->inputBuffer_.setSamplerate(impl_->sr_);
     impl_->outputBuffer_.setSamplerate(impl_->sr_);
 
-    impl_->inputBuffer_.setFsChFmt(impl_->fs_, inCh, impl_->fmt_);
-    impl_->outputBuffer_.setFsChFmt(impl_->fs_, outCh, impl_->fmt_);
+    impl_->inputBuffer_.setFsChFmt(impl_->fs_, inputChannels, impl_->fmt_);
+    impl_->outputBuffer_.setFsChFmt(impl_->fs_, outputChannels, impl_->fmt_);
 
     std::cerr << "SC init - buffer size in bytes: " << impl_->outputBuffer_.size() << std::endl;
 
@@ -235,8 +235,8 @@ bool SoundCard::init(int inDev, int outDev , unsigned int inCh,
       std::cerr << "Adjusting to " << expectedFramesize << std::endl;
 
       impl_->fs_ = expectedFramesize;
-      impl_->inputBuffer_.setFsChFmt(impl_->fs_, inCh, impl_->fmt_);
-      impl_->outputBuffer_.setFsChFmt(impl_->fs_, outCh, impl_->fmt_);
+      impl_->inputBuffer_.setFsChFmt(impl_->fs_, inputChannels, impl_->fmt_);
+      impl_->outputBuffer_.setFsChFmt(impl_->fs_, outputChannels, impl_->fmt_);
     }
 
     impl_->initialized_ = true;

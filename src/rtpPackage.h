@@ -1,10 +1,12 @@
 #pragma once
 
-#include "packetStructure.h"
+#include "PacketStructure.h"
 #include <cstdint>
 #include <vector>
 
-class RtpPackage : public PacketStrcutre
+using namespace std;
+
+class RtpPackage : public PacketStructure
 {
 	int version_ = 2;
 	int useExtensionHeaders_ = 0;
@@ -50,5 +52,7 @@ public:
 	int get_payload_type() const;
 	RtpPackage* set_payload_type(int payload_type);
 
-	static RtpPackage* ParsePackage(vector<uint8_t>* byteArray);
+	bool IsValid();
+
+	static RtpPackage* ParsePackage(const vector<uint8_t>* byteArray);
 };

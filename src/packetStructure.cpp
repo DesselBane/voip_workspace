@@ -1,14 +1,14 @@
-#include "packetStructure.h"
+#include "PacketStructure.h"
 
 
-void PacketStrcutre::ValidateDataLength(int const data, int const length)
+void PacketStructure::ValidateDataLength(int const data, int const length)
 {
 	long longData = data;
 	if (longData >> (length - 1) > 1)
 		throw "Data exceeds length";
 }
 
-void PacketStrcutre::CreateByteBuffer(int const sizeByte)
+void PacketStructure::CreateByteBuffer(int const sizeByte)
 {
 	if (byteBuffer_ == nullptr)
 	{
@@ -21,7 +21,7 @@ void PacketStrcutre::CreateByteBuffer(int const sizeByte)
 }
 
 
-void PacketStrcutre::WriteDataToBuffer(const uint32_t data, int const startBit, int const endBit)
+void PacketStructure::WriteDataToBuffer(const uint32_t data, int const startBit, int const endBit)
 {
 	ValidateDataLength(data, endBit - startBit + 1);
 
@@ -61,7 +61,7 @@ void PacketStrcutre::WriteDataToBuffer(const uint32_t data, int const startBit, 
 	byteBuffer_->data()[position] = oldData | remainingData & last8Bitmask;
 }
 
-uint32_t PacketStrcutre::ReadDataFromBuffer(int const startBit, int const endBit)
+uint32_t PacketStructure::ReadDataFromBuffer(int const startBit, int const endBit)
 {
 	int totalLength = (endBit - startBit) + 1;
 
@@ -111,18 +111,18 @@ uint32_t PacketStrcutre::ReadDataFromBuffer(int const startBit, int const endBit
 }
 
 
-PacketStrcutre::~PacketStrcutre()
+PacketStructure::~PacketStructure()
 {
 	delete byteBuffer_;
 	byteBuffer_ = nullptr;
 }
 
-std::vector<uint8_t>* PacketStrcutre::GetBuffer() const
+std::vector<uint8_t>* PacketStructure::GetBuffer() const
 {
 	return byteBuffer_;
 }
 
-int PacketStrcutre::getSizeByte()
+int PacketStructure::getSizeByte()
 {
 	return sizeByte_;
 }

@@ -1,4 +1,4 @@
-#include "rtpPackage.h"
+#include "RtpPackage.h"
 
 using namespace std;
 
@@ -150,10 +150,18 @@ RtpPackage* RtpPackage::set_payload_type(int payload_type)
 	return this;
 }
 
-RtpPackage* RtpPackage::ParsePackage(vector<uint8_t>* byteArray)
+bool RtpPackage::IsValid()
+{
+	if (get_version() != 2)
+		return false;
+
+	return true;
+}
+
+RtpPackage* RtpPackage::ParsePackage(vector<uint8_t> const * byteArray)
 {
 	auto pkg = new RtpPackage();
-	pkg->byteBuffer_ = new vector<uint8_t>(byteArray->begin(), byteArray->end()); //Todo copy
+	pkg->byteBuffer_ = new vector<uint8_t>(byteArray->begin(), byteArray->end());
 
 	int sizeInBytes = byteArray->size();
 	int paddingInBytes = pkg->ReadDataFromBuffer(2, 2) == 0

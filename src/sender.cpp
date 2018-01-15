@@ -6,7 +6,7 @@
  * own implementation.
  */
 
-#include "sender.h"
+#include "Sender.h"
 #include <iostream>
 
 using namespace std;
