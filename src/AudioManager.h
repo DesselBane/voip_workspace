@@ -14,7 +14,7 @@ public:
 	virtual ~AudioManager();
 
 	const util::AudioBuffer* GetNextAudioBuffer() override;
-	
+
 	void StartRecording();
 	void StopRecording();
 	bool IsRecording();
@@ -27,5 +27,4 @@ private:
 	mutex* queueEditMutex_ = nullptr;
 	condition_variable* queueConsumerCondition_ = nullptr;
 	mutex* isRecordingMutex_ = nullptr;
-
 };

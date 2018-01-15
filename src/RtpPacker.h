@@ -29,12 +29,12 @@ public:
 	bool IsPacking();
 
 	RtpPackage const* GetNextRtpPackage() override;
-	
+
 private:
 	void PackerLoop();
-	RtpPackage* ConfigurePackage(util::AudioBuffer const * buffer);
+	RtpPackage* ConfigurePackage(util::AudioBuffer const* buffer);
 
-	AudioBufferProvider * provider_ = nullptr;
+	AudioBufferProvider* provider_ = nullptr;
 	bool isPacking_ = false;
 	thread* workerThread_ = nullptr;
 	mutex* isPackingMutex_ = nullptr;

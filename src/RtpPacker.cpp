@@ -6,7 +6,7 @@
  * own implementation.
  */
 
-#include "rtp_packer.h"
+#include "RtpPacker.h"
 
 RtpPacker::RtpPacker(AudioBufferProvider* provider)
 {
@@ -21,7 +21,7 @@ RtpPacker::~RtpPacker()
 
 	provider_ = nullptr;
 
-	if(isPackingMutex_ != nullptr)
+	if (isPackingMutex_ != nullptr)
 	{
 		delete isPackingMutex_;
 		isPackingMutex_ = nullptr;
@@ -88,7 +88,7 @@ RtpPackage const* RtpPacker::GetNextRtpPackage()
 {
 	if (!IsPacking())
 		return nullptr;
-	
+
 	{
 		lock_guard<mutex> editGuard(*queueEditMutex_);
 
@@ -103,7 +103,7 @@ RtpPackage const* RtpPacker::GetNextRtpPackage()
 	mutex mtx;
 	unique_lock<mutex> lock(mtx);
 	queueConsumerCondition_->wait(lock);
-	
+
 	return GetNextRtpPackage();
 }
 
@@ -132,13 +132,13 @@ RtpPackage* RtpPacker::ConfigurePackage(util::AudioBuffer const* buffer)
 	const auto payload = new vector<uint8_t>(buffer->data(), buffer->data() + buffer->size());
 
 	pkg->set_version(2)
-		->set_use_extension_headers(false)
-		->set_marker_bit(false)
-		->set_payload_type(0)		//TODO add options for this
-		->set_sequence_number(0)
-		->set_timestamp(0)
-		->set_synchronization_source_identifier(0)
-		->set_payload(payload);
+	   ->set_use_extension_headers(false)
+	   ->set_marker_bit(false)
+	   ->set_payload_type(0) //TODO add options for this
+	   ->set_sequence_number(0)
+	   ->set_timestamp(0)
+	   ->set_synchronization_source_identifier(0)
+	   ->set_payload(payload);
 
 	pkg->Build();
 

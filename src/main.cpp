@@ -35,12 +35,7 @@
  */
 /******************************************************************************/
 
-#include "voip_comm.h"
-#include "receiver.h"
-#include "sender.h"
-#include "rtpPackage.h"
-
-using namespace std;
+#include "VoipComm.h"
 
 int main(int argc, char* argv[])
 {

@@ -6,4 +6,11 @@
  * own implementation.
  */
 
-#include "audiodecoder.h"
+#ifndef VOIP_RTP_DEPACKER_H
+#define VOIP_RTP_DEPACKER_H
+
+class RtpDepacker
+{
+};
+
+#endif /* VOIP_RTP_DEPACKER_H */

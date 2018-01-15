@@ -22,14 +22,14 @@ Receiver::~Receiver()
 	if (IsReceiving())
 		Stop();
 
-	if(isReceivingMutex_ != nullptr)
+	if (isReceivingMutex_ != nullptr)
 	{
 		delete isReceivingMutex_;
 		isReceivingMutex_ = nullptr;
 	}
 }
 
-void Receiver::Start(util::Ipv4SocketAddress const * listenAddress, util::Ipv4SocketAddress* receiveFromAddress)
+void Receiver::Start(util::Ipv4SocketAddress const* listenAddress, util::Ipv4SocketAddress* receiveFromAddress)
 {
 	if (IsReceiving())
 		return;
@@ -52,7 +52,7 @@ void Receiver::Start(util::Ipv4SocketAddress const * listenAddress, util::Ipv4So
 
 void Receiver::Stop()
 {
-	if(!IsReceiving())
+	if (!IsReceiving())
 		return;
 
 	lock_guard<mutex> isReceivingGuard(*isReceivingMutex_);
@@ -64,19 +64,19 @@ void Receiver::Stop()
 	delete socket_;
 	delete receiveAddress_;
 
-	if(consumerCondition_ != nullptr)
+	if (consumerCondition_ != nullptr)
 	{
 		delete consumerCondition_;
 		consumerCondition_ = nullptr;
 	}
 
-	if(queueEditMutex_ != nullptr)
+	if (queueEditMutex_ != nullptr)
 	{
 		delete queueEditMutex_;
 		queueEditMutex_ = nullptr;
 	}
 
-	if(dataQueue_ != nullptr)
+	if (dataQueue_ != nullptr)
 	{
 		delete dataQueue_;
 		dataQueue_ = nullptr;
@@ -91,12 +91,12 @@ bool Receiver::IsReceiving() const
 
 vector<uint8_t>* Receiver::GetNextDataPackage()
 {
-	if(!IsReceiving())
+	if (!IsReceiving())
 		return nullptr;
 
 	{
 		lock_guard<mutex> editGuard(*queueEditMutex_);
-		if(!dataQueue_->empty())
+		if (!dataQueue_->empty())
 		{
 			auto data = dataQueue_->front();
 			dataQueue_->pop();

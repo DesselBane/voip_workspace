@@ -21,7 +21,7 @@ public:
 	Receiver();
 	~Receiver();
 
-	void Start(util::Ipv4SocketAddress const * listenAddress, util::Ipv4SocketAddress* receiveFromAddress);
+	void Start(util::Ipv4SocketAddress const* listenAddress, util::Ipv4SocketAddress* receiveFromAddress);
 	void Stop();
 	bool IsReceiving() const;
 	vector<uint8_t>* GetNextDataPackage() override;
@@ -37,7 +37,6 @@ private:
 	mutex* queueEditMutex_ = nullptr;
 	condition_variable* consumerCondition_ = nullptr;
 	queue<vector<uint8_t>*>* dataQueue_ = nullptr;
-
 };
 
 #endif /* VOIP_RECEIVER_H */

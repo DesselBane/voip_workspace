@@ -18,15 +18,15 @@ using namespace std;
 class Sender
 {
 public:
-	Sender(RtpPackageProvider * provider);
+	Sender(RtpPackageProvider* provider);
 	~Sender();
-	
-	void StartSending(util::Ipv4SocketAddress const *sendToAddress);
+
+	void StartSending(util::Ipv4SocketAddress const* sendToAddress);
 	void StopSending();
 	bool IsSending();
 
 private:
-	void Send(const std::vector<uint8_t>& data);
+	void Send(const vector<uint8_t>& data);
 	void SendLoop();
 
 	bool isSending_ = false;
@@ -34,7 +34,7 @@ private:
 	util::UdpSocket* socket_ = nullptr;
 	util::Ipv4SocketAddress const* sendToAddress_ = nullptr;
 	thread* workerThread_ = nullptr;
-	RtpPackageProvider * provier_ = nullptr;
+	RtpPackageProvider* provier_ = nullptr;
 };
 
 #endif /* VOIP_SENDER_H */

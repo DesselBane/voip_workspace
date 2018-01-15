@@ -39,20 +39,21 @@
 #define VOIP_COMM_H
 
 // This is the application entry point
-class VoIPComm {
+class VoIPComm
+{
 public:
-  VoIPComm();
-  ~VoIPComm();
-  VoIPComm(VoIPComm const&)            = delete;
-  VoIPComm(VoIPComm&&)                 = delete;
-  VoIPComm& operator=(VoIPComm const&) = delete;
-  VoIPComm& operator=(VoIPComm&&)      = delete;
+	VoIPComm();
+	~VoIPComm();
+	VoIPComm(VoIPComm const&) = delete;
+	VoIPComm(VoIPComm&&) = delete;
+	VoIPComm& operator=(VoIPComm const&) = delete;
+	VoIPComm& operator=(VoIPComm&&) = delete;
 
-  int exec(int argc, char *argv[]);
+	int exec(int argc, char* argv[]);
 
 private:
-  bool init(int argc, char *argv[]);
-  void listDevices();
+	bool init(int argc, char* argv[]);
+	void listDevices();
 };
 
 #endif /* VOIP_COMM_H */

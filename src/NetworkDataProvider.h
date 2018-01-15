@@ -9,6 +9,11 @@ public:
 	virtual vector<uint8_t>* GetNextDataPackage() = 0;
 
 protected:
-	NetworkDataProvider(){}
-	virtual ~NetworkDataProvider(){}
+	NetworkDataProvider()
+	{
+	}
+
+	virtual ~NetworkDataProvider()
+	{
+	}
 };
