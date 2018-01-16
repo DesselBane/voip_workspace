@@ -13,6 +13,7 @@ RtpPacker::RtpPacker(AudioBufferProvider* provider, RtpOptions* options)
 {
 	provider_ = provider;
 	isPackingMutex_ = new mutex();
+	rtpOptions_ = options;
 }
 
 RtpPacker::~RtpPacker()
