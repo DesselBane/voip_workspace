@@ -15,13 +15,14 @@
 #include <mutex>
 #include <queue>
 #include <condition_variable>
+#include "RtpOptions.h"
 
 using namespace std;
 
 class RtpPacker : public RtpPackageProvider
 {
 public:
-	RtpPacker(AudioBufferProvider* provider);
+	RtpPacker(AudioBufferProvider* provider, RtpOptions* options);
 	virtual ~RtpPacker();
 
 	void StartPacking();
@@ -41,6 +42,7 @@ private:
 	mutex* queueEditMutex_ = nullptr;
 	condition_variable* queueConsumerCondition_ = nullptr;
 	queue<RtpPackage const*>* packageQueue_ = nullptr;
+	RtpOptions* rtpOptions_ = nullptr;
 };
 
 #endif /* VOIP_RTP_PACKER_H */

@@ -37,7 +37,7 @@ void PacketStructure::WriteDataToBuffer(const uint32_t data, int const startBit,
 
 	const int last8Bitmask = (1 << 8) - 1;
 
-	byteBuffer_->data()[position] = data << tail & last8Bitmask | oldData; //TODO verify this
+	byteBuffer_->data()[position] = data << tail & last8Bitmask | oldData; 
 
 	int forntHead = 8 - tail;
 	int remainingBits = endBit - startBit - forntHead;

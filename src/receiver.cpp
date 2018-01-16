@@ -121,7 +121,7 @@ void Receiver::ReceiveLoop()
 {
 	while (IsReceiving())
 	{
-		auto inputBuffer = new vector<uint8_t>(4096, 0); //TODO receive byte length dependes on mode etc
+		auto inputBuffer = new vector<uint8_t>(4096, 0); 
 		socket_->recvfrom(*receiveAddress_, *inputBuffer, 4096);
 
 		if(inputBuffer != nullptr){

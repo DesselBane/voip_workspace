@@ -37,6 +37,8 @@
 
 #ifndef VOIP_COMM_H
 #define VOIP_COMM_H
+#include "RtpOptions.h"
+#include "NetworkOptions.h"
 
 // This is the application entry point
 class VoIPComm
@@ -54,6 +56,10 @@ public:
 private:
 	bool init(int argc, char* argv[]);
 	void listDevices();
+
+	RtpOptions* rtpOptions_ = nullptr;
+	AudioOptions* audioOptions_ = nullptr;
+	NetworkOptions* networkOptions_ = nullptr;
 };
 
 #endif /* VOIP_COMM_H */

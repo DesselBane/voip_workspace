@@ -9,7 +9,7 @@
 #include "RtpPacker.h"
 #include <iostream>
 
-RtpPacker::RtpPacker(AudioBufferProvider* provider)
+RtpPacker::RtpPacker(AudioBufferProvider* provider, RtpOptions* options)
 {
 	provider_ = provider;
 	isPackingMutex_ = new mutex();
@@ -139,12 +139,12 @@ RtpPackage* RtpPacker::ConfigurePackage(util::AudioBuffer const* buffer)
 	const auto payload = new vector<uint8_t>(buffer->data(), buffer->data() + buffer->size());
 
 	pkg->set_version(2)
-	   ->set_use_extension_headers(false)
+	   ->set_use_extension_headers(rtpOptions_->GetUseExtension())
 	   ->set_marker_bit(false)
-	   ->set_payload_type(0) //TODO add options for this
-	   ->set_sequence_number(0)
-	   ->set_timestamp(0)
-	   ->set_synchronization_source_identifier(0)
+	   ->set_payload_type(rtpOptions_->GetPayloadType())
+	   ->set_sequence_number(rtpOptions_->GetNextSequenceNumber())
+	   ->set_timestamp(rtpOptions_->GetNextTimestamp())
+	   ->set_synchronization_source_identifier(rtpOptions_->GetSynchronizationSourceIdentifier())
 	   ->set_payload(payload);
 
 	pkg->Build();
