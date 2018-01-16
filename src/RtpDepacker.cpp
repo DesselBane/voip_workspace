@@ -168,5 +168,6 @@ util::AudioBuffer* RtpDepacker::Unpack(vector<uint8_t> const* data)
 		}
 	}
 
+	delete pkg;
 	return buffer;
 }
