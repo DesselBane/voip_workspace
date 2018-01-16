@@ -156,7 +156,6 @@ bool VoIPComm::Init(int argc, char* argv[])
 		TCLAP::ValueArg<unsigned int> sourcePort("", "lPort", "Local Port (default: 1976)", false, 1976, "unsigned int", cmd);
 
 		TCLAP::UnlabeledValueArg<string> destinationIp("destIp", "Destination IP address", false, "", "std::string", cmd);
-		TCLAP::UnlabeledValueArg<string> sourceIp("sourceIp", "Source IP address", false, "0.0.0.0", "std::string", cmd);
 
 		cmd.parse(argc, argv);
 
@@ -188,7 +187,7 @@ bool VoIPComm::Init(int argc, char* argv[])
 
 		audioOptions_ = new AudioOptions(inputDevice.getValue(), outputDevice.getValue(), frameSize.getValue(),
 		                                 sampleRate.getValue());
-		networkOptions_ = new NetworkOptions(destinationIp.getValue(), destinationPort.getValue(), sourceIp.getValue(),
+		networkOptions_ = new NetworkOptions(destinationIp.getValue(), destinationPort.getValue(), "0.0.0.0",
 		                                     sourcePort.getValue());
 		rtpOptions_ = new RtpOptions(audioOptions_, 11);
 	}
