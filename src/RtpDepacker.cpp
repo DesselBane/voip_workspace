@@ -10,15 +10,17 @@
 #include "RtpPackageProvider.h"
 #include <iostream>
 
-RtpDepacker::RtpDepacker(NetworkDataProvider* provider)
+RtpDepacker::RtpDepacker(NetworkDataProvider* provider, AudioOptions* audioOptions)
 {
 	provider_ = provider;
 	isUnpackingMutex_ = new mutex;
+	audioOptions_ = audioOptions;
 }
 
 RtpDepacker::~RtpDepacker()
 {
 	provider_ = nullptr;
+	audioOptions_ = nullptr;
 
 	if (isUnpackingMutex_ != nullptr)
 	{
@@ -123,23 +125,47 @@ util::AudioBuffer* RtpDepacker::Unpack(vector<uint8_t> const* data)
 	if (!pkg->IsValid())
 		return nullptr;
 
-	auto buffer = new util::AudioBuffer(512, 8, 44100, util::AudioBuffer::FLOAT32); //TODO add options
+	auto buffer = new util::AudioBuffer(audioOptions_->GetFrameSize(),
+	                                    audioOptions_->GetOutputChannels(),
+	                                    audioOptions_->GetSampleRate(),
+	                                    audioOptions_->GetFormat());
 
 	auto input = pkg->get_payload();
-	auto inputData = reinterpret_cast<float*>(input->data());
+	const auto inputData = reinterpret_cast<float*>(input->data());
 
-	float* buff = reinterpret_cast<float*>(buffer->data());
+	auto buff = reinterpret_cast<float*>(buffer->data());
+	const int outputChannelCount = audioOptions_->GetOutputChannels();
 
 	for (int i = 0; i < input->size() / 4; i++)
 	{
-		buff[8 * i + 7] = 0;
-		buff[8 * i + 6] = 0;
-		buff[8 * i + 5] = 0;
-		buff[8 * i + 4] = 0;
-		buff[8 * i + 3] = 0;
-		buff[8 * i + 2] = 0;
-		buff[8 * i + 1] = inputData[i];
-		buff[8 * i] = inputData[i];
+		switch (outputChannelCount)
+		{
+		case 8:
+			buff[outputChannelCount * i + 7] = 0;
+
+		case 7:
+			buff[outputChannelCount * i + 6] = 0;
+
+		case 6:
+			buff[outputChannelCount * i + 5] = 0;
+
+		case 5:
+			buff[outputChannelCount * i + 4] = 0;
+
+		case 4:
+			buff[outputChannelCount * i + 3] = 0;
+
+		case 3:
+			buff[outputChannelCount * i + 2] = 0;
+
+		case 2:
+			buff[outputChannelCount * i + 1] = inputData[i];
+		case 1:
+			buff[outputChannelCount * i] = inputData[i];
+			break;
+		default:
+			throw "Invalid channel configuration";
+		}
 	}
 
 	return buffer;

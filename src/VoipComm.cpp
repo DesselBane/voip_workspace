@@ -72,7 +72,7 @@ int VoIPComm::exec(int argc, char* argv[])
 	// Then somewhere, start the receiver (this can also become a member variable - its entirely up to you!)
 	//Create Object Graph
 	auto receiver = new Receiver(networkOptions_);
-	auto depacker = new RtpDepacker(receiver);
+	auto depacker = new RtpDepacker(receiver,audioOptions_);
 
 	auto audioManager = new AudioManager(depacker);
 	util::SoundCard mySoundCard(audioManager);

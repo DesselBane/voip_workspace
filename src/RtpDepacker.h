@@ -12,11 +12,12 @@
 #include <mutex>
 #include <queue>
 #include "AudioBufferProvider.h"
+#include "AudioOptions.h"
 
 class RtpDepacker : public AudioBufferProvider
 {
 public:
-	explicit RtpDepacker(NetworkDataProvider* provider);
+	explicit RtpDepacker(NetworkDataProvider* provider, AudioOptions* audioOptions);
 	virtual ~RtpDepacker();
 
 	void StartUnpacking();
@@ -34,6 +35,7 @@ private:
 	mutex* isUnpackingMutex_ = nullptr;
 	queue<util::AudioBuffer*>* audioQueue_ = nullptr;
 	NetworkDataProvider* provider_ = nullptr;
+	AudioOptions* audioOptions_ = nullptr;
 };
 
 #endif /* VOIP_RTP_DEPACKER_H */
