@@ -12,10 +12,11 @@
 using namespace std;
 
 
-Sender::Sender(RtpPackageProvider* provider)
+Sender::Sender(RtpPackageProvider* provider, NetworkOptions* networkOptions)
 {
 	provier_ = provider;
 	isSendingMutex_ = new mutex();
+	networkOptions_ = networkOptions;
 }
 
 Sender::~Sender()
@@ -24,6 +25,8 @@ Sender::~Sender()
 		StopSending();
 
 	provier_ = nullptr;
+	networkOptions_ = nullptr;
+
 	if (isSendingMutex_ != nullptr)
 	{
 		delete isSendingMutex_;
@@ -31,7 +34,7 @@ Sender::~Sender()
 	}
 }
 
-void Sender::StartSending(util::Ipv4SocketAddress const* sendToAddress)
+void Sender::StartSending()
 {
 	if (IsSending())
 		return;
@@ -40,8 +43,6 @@ void Sender::StartSending(util::Ipv4SocketAddress const* sendToAddress)
 
 	lock_guard<mutex> isSendingGuard(*isSendingMutex_);
 	isSending_ = true;
-
-	sendToAddress_ = sendToAddress;
 
 	socket_ = new util::UdpSocket();
 	socket_->open();
@@ -70,8 +71,6 @@ void Sender::StopSending()
 	delete socket_;
 	socket_ = nullptr;
 
-	sendToAddress_ = nullptr;
-
 	cout << "   ...done" << endl;
 }
 
@@ -83,7 +82,7 @@ bool Sender::IsSending()
 
 void Sender::Send(const vector<uint8_t>& data)
 {
-	socket_->sendto(*sendToAddress_, data);
+	socket_->sendto(*networkOptions_->GetDestinationIp(), data);
 }
 
 void Sender::SendLoop()

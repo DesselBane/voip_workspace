@@ -54,7 +54,7 @@ public:
 	int exec(int argc, char* argv[]);
 
 private:
-	bool init(int argc, char* argv[]);
+	bool Init(int argc, char* argv[]);
 	void listDevices();
 
 	RtpOptions* rtpOptions_ = nullptr;

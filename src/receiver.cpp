@@ -12,9 +12,10 @@
 
 using namespace std;
 
-Receiver::Receiver()
+Receiver::Receiver(NetworkOptions* networkOptions)
 {
 	isReceivingMutex_ = new mutex();
+	networkOptions_ = networkOptions;
 }
 
 Receiver::~Receiver()
@@ -29,7 +30,7 @@ Receiver::~Receiver()
 	}
 }
 
-void Receiver::Start(util::Ipv4SocketAddress const* listenAddress, util::Ipv4SocketAddress* receiveFromAddress)
+void Receiver::Start()
 {
 	if (IsReceiving())
 		return;
@@ -39,15 +40,13 @@ void Receiver::Start(util::Ipv4SocketAddress const* listenAddress, util::Ipv4Soc
 	lock_guard<mutex> isReceivingGuard(*isReceivingMutex_);
 	isReceiving_ = true;
 
-	receiveAddress_ = receiveFromAddress;
-
 	dataQueue_ = new queue<vector<uint8_t>*>();
 	queueEditMutex_ = new mutex();
 	consumerCondition_ = new condition_variable();
 
 	socket_ = new util::UdpSocket();
 	socket_->open();
-	socket_->bind(*listenAddress);
+	socket_->bind(*networkOptions_->GetSourceIp());
 
 	self_ = std::thread([&] { ReceiveLoop(); });
 }
@@ -122,7 +121,7 @@ void Receiver::ReceiveLoop()
 	while (IsReceiving())
 	{
 		auto inputBuffer = new vector<uint8_t>(4096, 0); 
-		socket_->recvfrom(*receiveAddress_, *inputBuffer, 4096);
+		socket_->recvfrom(*networkOptions_->GetSourceIp(), *inputBuffer, 4096);
 
 		if(inputBuffer != nullptr){
 			lock_guard<mutex> editGuard(*queueEditMutex_);

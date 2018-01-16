@@ -61,7 +61,7 @@ VoIPComm::~VoIPComm()
 
 int VoIPComm::exec(int argc, char* argv[])
 {
-	if (!init(argc, argv))
+	if (!Init(argc, argv))
 	{
 		cerr << "Error initializing!" << endl;
 		return -1;
@@ -71,29 +71,32 @@ int VoIPComm::exec(int argc, char* argv[])
 	// Wire up all required connections.
 	// Then somewhere, start the receiver (this can also become a member variable - its entirely up to you!)
 	//Create Object Graph
-	auto const destAddress = new util::Ipv4SocketAddress("127.0.0.1", 8888);
-	auto const listenAddress = new util::Ipv4SocketAddress("0.0.0.0", 8888);
-
-	auto receiver = new Receiver();
+	auto receiver = new Receiver(networkOptions_);
 	auto depacker = new RtpDepacker(receiver);
 
 	auto audioManager = new AudioManager(depacker);
 	util::SoundCard mySoundCard(audioManager);
-	auto packer = new RtpPacker(audioManager,rtpOptions_);
-	auto sender = new Sender(packer);
+	auto packer = new RtpPacker(audioManager, rtpOptions_);
+	auto sender = new Sender(packer, networkOptions_);
 
 
 	//Configure
-	mySoundCard.init(-1, -1, 1, 8, 44100, 512, util::AudioBuffer::FLOAT32);
+	mySoundCard.init(audioOptions_->GetInputDevice(),
+	                 audioOptions_->GetOutputDevice(),
+	                 audioOptions_->GetInputChannels(),
+	                 audioOptions_->GetOutputChannels(),
+	                 audioOptions_->GetSampleRate(),
+	                 audioOptions_->GetFrameSize(),
+	                 audioOptions_->GetFormat());
 
 
 	//Start
-	receiver->Start(listenAddress, listenAddress);
+	receiver->Start();
 	depacker->StartUnpacking();
 
 	audioManager->StartRecording();
 	packer->StartPacking();
-	sender->StartSending(destAddress);
+	sender->StartSending();
 	mySoundCard.start();
 
 	// Just wait for enter
@@ -114,8 +117,6 @@ int VoIPComm::exec(int argc, char* argv[])
 	delete packer;
 	delete audioManager;
 	delete receiver;
-	delete listenAddress;
-	delete destAddress;
 
 	delete rtpOptions_;
 	delete audioOptions_;
@@ -127,7 +128,7 @@ int VoIPComm::exec(int argc, char* argv[])
 	return 0;
 }
 
-bool VoIPComm::init(int argc, char* argv[])
+bool VoIPComm::Init(int argc, char* argv[])
 {
 	srand(TIME_UTC);
 
@@ -142,11 +143,16 @@ bool VoIPComm::init(int argc, char* argv[])
 		// These here show you what you might need
 		TCLAP::ValueArg<int> inputDevice("i", "input-device", "Select input device", false, -1, "int", cmd);
 		TCLAP::ValueArg<int> outputDevice("o", "output-device", "Select output device", false, -1, "int", cmd);
-		TCLAP::ValueArg<unsigned int> inputChannelNumber("", "inCh", "Number of input channels (default: 1)", false, 1, "unsigned int",cmd);
-		TCLAP::ValueArg<unsigned int> outputChannelNumber("", "outCh", "Number of output channels (default 1)", false, 1, "unsigned int",cmd);
-		TCLAP::ValueArg<unsigned int> frameSize("f", "Framesize", "Framesize (default: 512)", false, 512, "unsigned int", cmd);
-		TCLAP::ValueArg<unsigned int> sampleRate("s", "samplerate", "Samplerate (default: 44100)", false, 44100, "unsigned int", cmd);
-		TCLAP::ValueArg<unsigned int> destinationPort("", "rPort", "Remote Port (default: 1976)", false, 1976, "unsigned int", cmd);
+		TCLAP::ValueArg<unsigned int> inputChannelNumber("", "inCh", "Number of input channels (default: 1)", false, 1,
+		                                                 "unsigned int", cmd);
+		TCLAP::ValueArg<unsigned int> outputChannelNumber("", "outCh", "Number of output channels (default 1)", false, 1,
+		                                                  "unsigned int", cmd);
+		TCLAP::ValueArg<unsigned int> frameSize("f", "Framesize", "Framesize (default: 512)", false, 512, "unsigned int",
+		                                        cmd);
+		TCLAP::ValueArg<unsigned int> sampleRate("s", "samplerate", "Samplerate (default: 44100)", false, 44100,
+		                                         "unsigned int", cmd);
+		TCLAP::ValueArg<unsigned int> destinationPort("", "rPort", "Remote Port (default: 1976)", false, 1976, "unsigned int",
+		                                              cmd);
 		TCLAP::ValueArg<unsigned int> sourcePort("", "lPort", "Local Port (default: 1976)", false, 1976, "unsigned int", cmd);
 
 		TCLAP::UnlabeledValueArg<string> destinationIp("destIp", "Destination IP address", false, "", "std::string", cmd);
@@ -169,21 +175,22 @@ bool VoIPComm::init(int argc, char* argv[])
 			exit(-1);
 		}
 
-		if(sampleRate.getValue() != 44100)
+		if (sampleRate.getValue() != 44100)
 		{
 			cerr << "BETA Restriction: Can only operate with a sample rate of 44100" << endl;
 			exit(-2);
 		}
 
-		if(inputChannelNumber.getValue() != 1)
+		if (inputChannelNumber.getValue() != 1)
 		{
 			cerr << "BETA Restriction: Can only use 1 input channel. 1 channel will be used" << endl;
 		}
 
-		audioOptions_ = new AudioOptions(inputDevice.getValue(), outputDevice.getValue(), frameSize.getValue(), sampleRate.getValue());
-		networkOptions_ = new NetworkOptions(destinationIp.getValue(), destinationPort.getValue(), sourceIp.getValue(), sourcePort.getValue());
+		audioOptions_ = new AudioOptions(inputDevice.getValue(), outputDevice.getValue(), frameSize.getValue(),
+		                                 sampleRate.getValue());
+		networkOptions_ = new NetworkOptions(destinationIp.getValue(), destinationPort.getValue(), sourceIp.getValue(),
+		                                     sourcePort.getValue());
 		rtpOptions_ = new RtpOptions(audioOptions_, 11);
-
 	}
 	catch (TCLAP::ArgException& argEx)
 	{

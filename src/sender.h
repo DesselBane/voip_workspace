@@ -12,16 +12,17 @@
 #include <socket.h>
 #include <mutex>
 #include "RtpPackageProvider.h"
+#include "NetworkOptions.h"
 
 using namespace std;
 
 class Sender
 {
 public:
-	Sender(RtpPackageProvider* provider);
+	Sender(RtpPackageProvider* provider, NetworkOptions* networkOptions);
 	~Sender();
 
-	void StartSending(util::Ipv4SocketAddress const* sendToAddress);
+	void StartSending();
 	void StopSending();
 	bool IsSending();
 
@@ -32,9 +33,9 @@ private:
 	bool isSending_ = false;
 	mutex* isSendingMutex_ = nullptr;
 	util::UdpSocket* socket_ = nullptr;
-	util::Ipv4SocketAddress const* sendToAddress_ = nullptr;
 	thread* workerThread_ = nullptr;
 	RtpPackageProvider* provier_ = nullptr;
+	NetworkOptions* networkOptions_;
 };
 
 #endif /* VOIP_SENDER_H */

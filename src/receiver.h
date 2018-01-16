@@ -14,14 +14,15 @@
 #include "NetworkDataProvider.h"
 #include <mutex>
 #include <queue>
+#include "NetworkOptions.h"
 
 class Receiver : public NetworkDataProvider
 {
 public:
-	Receiver();
+	Receiver(NetworkOptions* networkOptions);
 	~Receiver();
 
-	void Start(util::Ipv4SocketAddress const* listenAddress, util::Ipv4SocketAddress* receiveFromAddress);
+	void Start();
 	void Stop();
 	bool IsReceiving() const;
 	vector<uint8_t>* GetNextDataPackage() override;
@@ -32,11 +33,11 @@ private:
 	bool isReceiving_ = false;
 	thread self_;
 	util::UdpSocket* socket_ = nullptr;
-	util::Ipv4SocketAddress* receiveAddress_ = nullptr;
 	mutex* isReceivingMutex_ = nullptr;
 	mutex* queueEditMutex_ = nullptr;
 	condition_variable* consumerCondition_ = nullptr;
 	queue<vector<uint8_t>*>* dataQueue_ = nullptr;
+	NetworkOptions* networkOptions_ = nullptr;
 };
 
 #endif /* VOIP_RECEIVER_H */
