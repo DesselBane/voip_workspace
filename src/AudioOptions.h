@@ -11,7 +11,7 @@ public:
 	                      int outputDevice = -1,
 	                      uint32_t frameSize = 512,
 	                      uint32_t sampleRate = 44100,
-	                      util::AudioBuffer::SampleFormat format = util::AudioBuffer::FLOAT32);
+	                      util::AudioBuffer::SampleFormat format = util::AudioBuffer::INT16);
 
 	virtual ~AudioOptions(){}
 

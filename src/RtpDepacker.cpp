@@ -131,9 +131,9 @@ util::AudioBuffer* RtpDepacker::Unpack(vector<uint8_t> const* data)
 	                                    audioOptions_->GetFormat());
 
 	auto input = pkg->get_payload();
-	const auto inputData = reinterpret_cast<float*>(input->data());
+	const auto inputData = reinterpret_cast<int16_t*>(input->data());
 
-	auto buff = reinterpret_cast<float*>(buffer->data());
+	auto buff = reinterpret_cast<int16_t*>(buffer->data());
 	const int outputChannelCount = audioOptions_->GetOutputChannels();
 
 	for (int i = 0; i < input->size() / 4; i++)

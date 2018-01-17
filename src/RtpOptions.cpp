@@ -13,7 +13,7 @@ RtpOptions::RtpOptions(AudioOptions* audioOptions, uint8_t payloadType, bool use
 	timestampMutex_ = new mutex();
 	sequenceNumberMutex_ = new mutex();
 
-	timestampIncrease_ = audioOptions_->GetFrameSize() * 10000 / audioOptions_->GetSampleRate();
+	timestampIncrease_ = audioOptions_->GetFrameSize();
 }
 
 RtpOptions::~RtpOptions()
